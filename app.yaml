@@ -27,11 +27,6 @@ handlers:
 - url: /api/.*
   script: commplish/api/__init__.py
   
-- url: /admin/.*
-  login: admin
-  secure: always
-  script: commplish/admin/__init__.py
-  
 - url: /.*
   script: app.py
   

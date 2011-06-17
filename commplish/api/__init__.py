@@ -93,11 +93,11 @@ class ProjectService(webapp.RequestHandler):
                 "about": p.about,
                 "icon": icon,
                 "age": "%s %s" % (str(age.days + 1), ageunit),
-                "badgeSets": [],
+                "collections": [],
                 "members": memberct,
               }
-        """Add all the badgesets the project belongs to"""
-        for bs in p.badgeSets:
+        """Add all the collections the project belongs to"""
+        for bs in p.collections:
             bd = db.get(bs)
             if bd:
                 s = {
@@ -113,7 +113,7 @@ class ProjectService(webapp.RequestHandler):
                             "icon": images.get_serving_url(b.icon, size=int(sz)),
                         }
                     s['badges'].append(t)
-                out['badgeSets'].append(s)
+                out['collections'].append(s)
                 
         self.response.out.write(
             simplejson.dumps(out)
@@ -140,7 +140,7 @@ class UserService(webapp.RequestHandler):
                     "about": u.about,
                     "email": u.user.email(),
                     "icon": "http://www.gravatar.com/avatar/%s" % u.md5,
-                    "badgeSets": [],
+                    "collections": [],
                     "admins": [],
                     "age": "%s %s" % (str(age.days + 1), ageunit),
                   }
@@ -154,13 +154,13 @@ class UserService(webapp.RequestHandler):
             bg = {}
             for b in u.badges:
                 ba = b.parent()
-                title = ba.set.title
+                title = ba.collection.title
                 if title not in bg.keys():
                     bg[title] = {
                         "title": title,
                         "badges": [],
                         "projects": [] }
-                    for p in ba.set.projects:
+                    for p in ba.collection.projects:
                         bg[title]["projects"].append(db.get(p).name)
                         
                 bg[title]["badges"].append({
@@ -168,7 +168,7 @@ class UserService(webapp.RequestHandler):
                         "icon": images.get_serving_url(ba.icon, size=int(sz)),
                         "title": ba.title })
             for b in bg.values():
-                out["badgeSets"].append(b)
+                out["collections"].append(b)
                         
         self.response.out.write(
             simplejson.dumps(out)
@@ -199,7 +199,7 @@ class UserService(webapp.RequestHandler):
                     "about": u.about,
                     "email": u.user.email(),
                     "icon": "http://www.gravatar.com/avatar/%s" % u.md5,
-                    "badgeSets": [],
+                    "collections": [],
                     "admins": [],
                     "age": "%s %s" % (str(age.days + 1), ageunit),
                   }
@@ -213,13 +213,13 @@ class UserService(webapp.RequestHandler):
             bg = {}
             for b in u.badges:
                 ba = b.parent()
-                title = ba.set.title
+                title = ba.collection.title
                 if title not in bg.keys():
                     bg[title] = {
                         "title": title,
                         "badges": [],
                         "projects": [] }
-                    for p in ba.set.projects:
+                    for p in ba.collection.projects:
                         bg[title]["projects"].append(db.get(p).name)
                         
                 bg[title]["badges"].append({
@@ -227,7 +227,7 @@ class UserService(webapp.RequestHandler):
                         "icon": images.get_serving_url(ba.icon, size=int(sz)),
                         "title": ba.title })
             for b in bg.values():
-                out["badgeSets"].append(b)
+                out["collections"].append(b)
                         
         self.response.out.write(
             simplejson.dumps(out)

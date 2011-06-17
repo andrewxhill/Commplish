@@ -3,20 +3,21 @@
     <title>Commplish</title>
     <link rel="stylesheet" type="text/css" href="http://fonts.googleapis.com/css?family=Ubuntu">
     <link rel="stylesheet" href="/css/main.css">
-    <link rel="stylesheet" href="/css/profile.css">
+    <link rel="stylesheet" href="/css/profile_admin.css">
+    <link rel="stylesheet" href="/css/forms/main.css">
     <script src="//ajax.googleapis.com/ajax/libs/jquery/1.6.1/jquery.min.js" type="text/javascript"></script>
     <script>
         $('document').ready(function(){
             var urlparts = window.location.pathname.split('/');
             var project = urlparts[urlparts.length - 1];
             $.getJSON('/api/project/'+project+'?s=144', function(data) {
-                $('#profile .content .title').text(data.fullName);
+                $('#profile .content .title').val(data.fullName);
                 $('#profile .content .url').html(
                     $('<a>').attr('href',data.url).text('project website')
                 );
                 $('#profile .content .icon').attr('src',data.icon);
-                $('#profile .content .about').text(data.about);
-                $('#profile .content .link.badges').text('Awards from '+data.collections.length+' Collections');
+                $('#profile .content .about').val(data.about);
+                $('#profile .content .link.badges').text('Awards from '+data.collections.length+' collections');
                 $('#profile .content .link.members').text(data.members+' members');
                 $('#profile .content .link.age').text('Awarding for '+data.age);
                
@@ -26,6 +27,7 @@
                     ); 
                 } else {
                     for ( i in data.collections ) {
+                        console.log(data.collections[i].title);
                         var bs = $('<div>').addClass('badge-set');
                         bs.append($('<div>').addClass('name').text(data.collections[i].title));
                         for (b in data.collections[i].badges) {
@@ -50,13 +52,16 @@
         <div id="content">
             <div id="profile">
                 <div class="content">
-                    <div class="title"></div>
-                    <img class="icon" src="" />
-                    <div class="url"></div>
-                    <div class="about"></div>
-                    <div class="link badges"></div>
-                    <div class="link members"></div>
-                    <div class="link age"></div>
+                    <form class="content-block" action="/org/profile/update" method="post">
+                        <input class="title" value="name">
+                        <img class="icon" src="" />
+                        <div class="url"></div>
+                        <textarea class="about"></textarea>
+                        <div class="link badges"></div>
+                        <div class="link members"></div>
+                        <div class="link age"></div>
+                        <input type="submit" name="action" value="update" class="button submit small" />
+                    </form>
                 </div>
             </div>
             <div id="badges">

@@ -113,6 +113,24 @@ class ProjectProfile(BaseHandler):
             self.push_html('project_signup.html')
             return
         self.push_html('public_project_profile.html')
+       
+class ProjectProfileAdmin(BaseHandler):
+    def __init__(self):
+        self.user = users.get_current_user()
+        m = md5.new()
+        m.update(self.user.email().strip().lower())
+        self.usermd5 = str(m.hexdigest())
+        
+    def post(self,pid):
+        self.get(pid)
+    
+    def get(self,pid):
+        um = UserModel.all(keys_only=True).filter('md5 = ',self.usermd5).fetch(1)
+        if len(um)==0:
+            self.redirect('/home')
+            return
+        self.push_html('admin_project_profile.html')
+        return
 
 class GiveFakeBadges(BaseHandler):
     def get(self):
@@ -120,8 +138,8 @@ class GiveFakeBadges(BaseHandler):
         u = UserModel.get_by_key_name(id)
         bid = self.request.get('bid', None)
         bg = Badge.get_by_id(int(bid))
-        bs = bg.set
-        p = Project.all(keys_only=True).filter('badgeSets = ',bs).fetch(1)[0]
+        bs = bg.collection
+        p = Project.all(keys_only=True).filter('collections = ',bs).fetch(1)[0]
         if p not in u.projects:
             u.projects.append(p)
             db.put(u)
@@ -179,7 +197,7 @@ class LoadFakeData(BaseHandler):
                     name = shortname,
                     url = db.Link("http://mappinglife.org"),
                     about = "Species range knowledge project",
-                    badgeSets = [],
+                    collections = [],
                     admins = [usr.key()],
                     icon = str(icon_key),
                     joinDate = datetime.datetime.now(),
@@ -190,15 +208,15 @@ class LoadFakeData(BaseHandler):
         usr.admins.append(proj.key())
         
         title = "Species cartographer"
-        bds = BadgeSet(
+        bds = Collection(
                     key_name = title.lower().replace(' ','_'),
                     title = title,
                     about = "These badged are given to members who help us discover where species exist",
                     projects = []
                     )
                     
-        """add the set to the project"""
-        proj.badgeSets.append(bds.key())
+        """add the collection to the project"""
+        proj.collections.append(bds.key())
         db.put(proj)
         
         bds.projects.append(proj.key())
@@ -235,7 +253,7 @@ class LoadFakeData(BaseHandler):
             bg = Badge(
                     title = titles.pop(),
                     about = abouts.pop(),
-                    set = bds,
+                    collection = bds,
                     icon = str(icon_key)
                     )
             db.put(bg)
@@ -388,6 +406,7 @@ application = webapp.WSGIApplication([('/', SiteHome),
                                       ('/user/([^/]+)', UserProfile),
                                       ('/home', UserAdmin),
                                       ('/project/([^/]+)', ProjectProfile),
+                                      ('/admin/project/([^/]+)', ProjectProfileAdmin),
                                       ('/org/user/([^/]+)', CreateNewUser),
                                       ('/org/project/([^/]+)', CreateNewProject),
                                       ('/new', CreateNewProject),

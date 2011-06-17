@@ -24,7 +24,7 @@ class UserBadge(db.Model):
     user = db.ReferenceProperty(UserModel, collection_name="badges")
     recieved = db.DateTimeProperty()
    
-class BadgeSet(db.Model):
+class Collection(db.Model):
     title = db.StringProperty()
     about = db.TextProperty()
     has_badges = db.BooleanProperty(default=True)
@@ -36,7 +36,7 @@ class BadgeSet(db.Model):
 class Badge(db.Model):
     title = db.StringProperty()
     about = db.TextProperty()
-    set = db.ReferenceProperty(BadgeSet, collection_name="badges")
+    collection = db.ReferenceProperty(Collection, collection_name="badges")
     icon = db.StringProperty()
 
 class Project(db.Model):
@@ -46,7 +46,7 @@ class Project(db.Model):
     url = db.LinkProperty()
     about = db.TextProperty()
     icon = db.StringProperty()
-    badgeSets = db.ListProperty(db.Key)
+    collections = db.ListProperty(db.Key)
     admins = db.ListProperty(db.Key)
     joinDate = db.DateTimeProperty()
     secret = db.StringProperty()

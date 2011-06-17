@@ -15,10 +15,10 @@
                 
                 $('#profile .content .about').text(data.about);
                 $('#profile .content .link.projects').text('Administers '+data.admins.length+' projects');
-                $('#profile .content .link.badgesets').text('Administers '+data.badgeSets.length+' badge Sets');
+                $('#profile .content .link.collections').text('Administers '+data.collections.length+' collections');
                 $('#profile .content .link.age').text('Member for '+data.age);
                
-                if (data.badgeSets.length == 0){
+                if (data.collections.length == 0){
                     $('#badges').append(
                         $('<div>').addClass('name').text(data.nickname + ' has not earned any badges yet')
                     ); 
@@ -26,14 +26,14 @@
                 
                 } else {
                     var badgesCt = 0;
-                    for ( i in data.badgeSets ) {
-                        var bs = $('<div>').addClass('badge-set');
-                        bs.append($('<div>').addClass('name').text(data.badgeSets[i].title));
-                        for (b in data.badgeSets[i].badges) {
+                    for ( i in data.collections ) {
+                        var bs = $('<div>').addClass('collections');
+                        bs.append($('<div>').addClass('name').text(data.collections[i].title));
+                        for (b in data.collections[i].badges) {
                             badgesCt++;
                             var bg = $('<div>').addClass('badge').addClass('small');
-                            bg.append($('<img>').attr('src',data.badgeSets[i].badges[b].icon).attr('title',data.badgeSets[i].badges[b].about));
-                            bg.append($('<div>').addClass('title').text(data.badgeSets[i].badges[b].title));
+                            bg.append($('<img>').attr('src',data.collections[i].badges[b].icon).attr('title',data.collections[i].badges[b].about));
+                            bg.append($('<div>').addClass('title').text(data.collections[i].badges[b].title));
                             bs.append(bg);
                         }
                         $('#badges').append(bs);
@@ -57,7 +57,7 @@
                     <div class="about"></div>
                     <div class="link badges"></div>
                     <div class="link projects"></div>
-                    <div class="link badgesets"></div>
+                    <div class="link collections"></div>
                     <div class="link age"></div>
                 </div>
             </div>

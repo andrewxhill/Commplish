@@ -84,6 +84,14 @@
     color: white;
     border-radius: 5px;
 }
+.content-block .button {
+    border-radius: 2px;
+    margin-right: 4px;
+    padding-left: 5px;
+    padding-right: 5px;
+    font-size: 14px;
+}
+
 .content-block .button.cancel {
 
 }
