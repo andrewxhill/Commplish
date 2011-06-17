@@ -109,70 +109,6 @@ class ProjectProfile(BaseHandler):
             return
         self.push_html('public_project_profile.html')
 
-class CreateNewProject(BaseHandler):
-    def __init__(self):
-        self.user = None
-        self.classpath = '/new/'
-        
-    def post(self,stage):
-        self.get(stage)
-        
-    
-    def _updatehandler(self):
-        if self.request.get('cancel', None):
-            self.redirect('/')
-            
-        is_next = self.request.get('next', None) 
-        is_save = self.request.get('save', None) 
-        
-        if is_next:
-            tg = self.request.get('target', None) 
-            if tg:
-                self.redirect(self.classpath + tg)
-            else:
-                self.redirect('/')
-        else:
-            self.redirect('/')
-                
-    def details(self):
-        self.push_html('project_details.html')
-            
-    def create(self):
-        self.push_html('project_signup.html')
-        
-    def addbadges(self):
-        self.push_html('project_badges.html')
-        
-    def trackedbadges(self):
-        self.push_html('project_badges_tracked.html')
-        
-    def sharedbadges(self):
-        self.push_html('project_badges_shared.html')
-        
-    def admins(self):
-        self.push_html('project_admins.html')
-        
-    def get(self, stage=None):
-        self.user = users.get_current_user()
-        if stage==None:
-            self.create()
-        if self.user is not None:
-            if stage=="update":
-                self._updatehandler()
-            elif stage=="details":
-                self.details()
-            elif stage=="badges":
-                self.addbadges()
-            elif stage=="tracked":
-                self.trackedbadges()
-            elif stage=="shared":
-                self.sharedbadges()
-            elif stage=="admins":
-                self.admins()
-        else:
-            self.redirect('/user')
-
-
 class GiveFakeBadges(BaseHandler):
     def get(self):
         id = self.request.get('id', None)
@@ -326,8 +262,9 @@ class CreateNewUser(BaseHandler):
             self._createuser()
             
     def _createuser(self):
-        if self.request.get('cancel', None):
+        if self.request.get('action', None) == "cancel":
             self.redirect('/')
+            return
             
         self.user = users.get_current_user()
         
@@ -350,12 +287,105 @@ class CreateNewUser(BaseHandler):
             
         self.redirect(self.sendurl)
             
+
+class CreateNewProject(BaseHandler):
+    def __init__(self):
+        self.user = None
+        self.sendurl = '/project'
+        
+    def post(self,action):
+        self.get(action)
+    
+    def get(self,action):
+        if action=='create':
+            self._createproject()
+            
+    def _checkname(self, name):
+        pk = db.get(db.Key.from_path('Project',name.strip().lower()))
+        return True if pk is None else False
+        
+    def _checkurl(self, url):
+        if url.strip()=="":
+            return False
+        url = url.lower().lstrip('http://')
+        url = url.lstrip('www.')
+        urls = ["http://" + url, "http://www." + url]
+        pk = Project.all(keys_only=True).filter('url = ', urls[0]).fetch(1)
+        if len(pk) == 0:
+            pk = Project.all(keys_only=True).filter('url = ', urls[1]).fetch(1)
+        return True if len(pk)==0 else False
+        
+    def _validurl(self, url):
+        url = url.lower().lstrip('http://')
+        return "http://" + url
+        
+    def _createproject(self):
+        if self.request.get('action', None) == "cancel":
+            self.redirect('/home')
+            return
+            
+        user = users.get_current_user()
+        m = md5.new()
+        m.update(user.email().strip().lower())
+        usermd5 = str(m.hexdigest())
+        
+        try:
+            self.user = UserModel.all().filter('md5 = ', usermd5).fetch(1)[0]
+        except:
+            self.user = None
+            
+        if not self.user:
+            self.redirect('/')
+            return
+        
+        fullName = self.request.get('project-full-name', None)
+        name = self.request.get('project-name', None)
+        url = self.request.get('project-url', None)
+        desc = self.request.get('project-description', None)
+        icon = self.request.get('project-icon', None)
+        
+        if self._checkurl(url) and self._checkname(name):
+            """
+            fullName = db.TextProperty()
+            name = db.StringProperty()
+            url = db.LinkProperty()
+            about = db.TextProperty()
+            icon = db.StringProperty()
+            badgeSets = db.ListProperty(db.Key)
+            admins = db.ListProperty(db.Key)
+            joinDate = db.DateTimeProperty()
+            secret = db.StringProperty()
+            verified = db.BooleanProperty(default=False)
+            """
+            p = Project(
+                    key_name = name.strip().lower(),
+                    fullName = fullName.strip(),
+                    name = name,
+                    url = self._validurl(url),
+                    about = desc,
+                    admins = [self.user.key()],
+                    joinDate = datetime.datetime.now(),
+                    secret = str(uuid.uuid4())
+                    )
+            db.put(p)
+            self.user.admins.append(p.key())
+            self.user.projects.append(p.key())
+            db.put(self.user)
+            
+            rurl = "/project/%s" % name
+            self.redirect(rurl)
+            return
+            
+        self.redirect('/')
+            
+                              
                               
 application = webapp.WSGIApplication([('/', SiteHome),
                                       ('/user/([^/]+)', UserProfile),
                                       ('/home', UserAdmin),
                                       ('/project/([^/]+)', ProjectProfile),
                                       ('/org/user/([^/]+)', CreateNewUser),
+                                      ('/org/project/([^/]+)', CreateNewProject),
                                       ('/new', CreateNewProject),
                                       #('/new/([^/]+)', CreateNewProject),
                                       
