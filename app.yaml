@@ -1,0 +1,37 @@
+application: commplish
+version: commplish-dev
+runtime: python
+api_version: 1
+
+builtins:
+- appstats: on
+- datastore_admin: on
+
+handlers:
+- url: /favicon.ico
+  static_files: static/gfx/favicon.ico
+  upload: static/gfx/favicon.ico
+
+- url: /content
+  static_dir: commplish/content
+  
+- url: /js
+  static_dir: commplish/js
+  
+- url: /css
+  static_dir: commplish/css
+  
+- url: /images
+  static_dir: commplish/images
+
+- url: /api/.*
+  script: commplish/api/__init__.py
+  
+- url: /admin/.*
+  login: admin
+  secure: always
+  script: commplish/admin/__init__.py
+  
+- url: /.*
+  script: app.py
+  

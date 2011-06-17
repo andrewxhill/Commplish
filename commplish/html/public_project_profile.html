@@ -1,0 +1,69 @@
+<html>
+<head>
+    <title>Commplish</title>
+    <link rel="stylesheet" type="text/css" href="http://fonts.googleapis.com/css?family=Ubuntu">
+    <link rel="stylesheet" href="/css/main.css">
+    <link rel="stylesheet" href="/css/profile.css">
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.6.1/jquery.min.js" type="text/javascript"></script>
+    <script>
+        $('document').ready(function(){
+            var urlparts = window.location.pathname.split('/');
+            var project = urlparts[urlparts.length - 1];
+            $.getJSON('/api/project/'+project+'?s=144', function(data) {
+                $('#profile .content .title').text(data.fullName);
+                $('#profile .content .url').html(
+                    $('<a>').attr('href',data.url).text('project website')
+                );
+                $('#profile .content .icon').attr('src',data.icon);
+                $('#profile .content .about').text(data.about);
+                $('#profile .content .link.badges').text('Awards from '+data.badgeSets.length+' Badge Sets');
+                $('#profile .content .link.members').text(data.members+' members');
+                $('#profile .content .link.age').text('Awarding for '+data.age);
+               
+                if (data.badgeSets.length == 0){
+                    $('#badges').append(
+                        $('<div>').addClass('name').text(data.name + ' is not awarding any badges yet')
+                    ); 
+                } else {
+                    for ( i in data.badgeSets ) {
+                        console.log(data.badgeSets[i].title);
+                        var bs = $('<div>').addClass('badge-set');
+                        bs.append($('<div>').addClass('name').text(data.badgeSets[i].title));
+                        for (b in data.badgeSets[i].badges) {
+                            var bg = $('<div>').addClass('badge');
+                            bg.append($('<img>').attr('src',data.badgeSets[i].badges[b].icon).attr('title',data.badgeSets[i].badges[b].about));
+                            bg.append($('<div>').addClass('title').text(data.badgeSets[i].badges[b].title));
+                            bs.append(bg);
+                        }
+                        $('#badges').append(bs);
+                    }
+                }
+            });
+        });
+    </script>
+
+</head>
+<body>
+    <div id="header">
+        <div id="content">commplish</div>
+    </div>
+    <div id="container">
+        <div id="content">
+            <div id="profile">
+                <div class="content">
+                    <div class="title"></div>
+                    <img class="icon" src="" />
+                    <div class="url"></div>
+                    <div class="about"></div>
+                    <div class="link badges"></div>
+                    <div class="link members"></div>
+                    <div class="link age"></div>
+                </div>
+            </div>
+            <div id="badges">
+            </div>
+        </div>
+        <div id="footer">(c) commplish</div>
+    </div>
+</body>
+</html>

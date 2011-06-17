@@ -1,0 +1,79 @@
+
+html {
+    height: 100%;
+    min-width: 780px;
+}
+body{
+    position: relative;
+    height: 100%;
+    margin: 0px;
+    padding: 0px;
+    background-color: #fefefd;
+    font-family: Ubuntu, sans-serif;
+    font-size: 20px;
+}
+#header {
+    width: 100%;
+    position: relative;
+    float: left;
+    background-color: #ff4500;
+    height: 60px;
+    z-index: 8;
+}
+#header #content{
+    position: absolute;
+    width: 730px;
+    padding: 10px;
+    margin-left: -375px;
+    top: 0;
+    left: 50%;
+    height: 60px;
+    color: white;
+    font-size: 1.5em;
+    font-weight: bold;
+}
+#container{
+    position: absolute;
+    width: 750px;
+    margin-left: -375px;
+    top: 60px;
+    left: 50%;
+}
+#container #content{
+    width: 100%;
+    position: relative;
+    float: left;
+    padding: 10px;
+    min-height: 500px;
+    background: white;
+    -moz-box-shadow: 0px 0px 10px rgba(0,150,0,0.85);
+    -webkit-box-shadow: 0px 0px 10px rgba(0,150,0,0.85);
+    box-shadow: 0px 0px 10px rgba(89,104,89,0.85);
+}
+#container #content .left-menu {
+    border-right: 1px solid grey;
+    padding: 5px;
+    text-align: right;
+}
+#container #content .left-menu .row{
+    width: 100%;
+    margin-bottom: 5px;
+}
+#container #content .left-menu .row a{
+    color: black;
+    text-decoration: none;
+}
+#container #content .left-menu .row a:hover,
+#container #content .left-menu .row a.selected{
+    color: #ff4500;
+}
+#container #footer{
+    width: 100%;
+    position: relative;
+    float: left;
+    height: 200px;
+    margin-top: 20px;
+    padding: 10px;
+    font-size: 12px;
+    color: #c0c0c0;
+}

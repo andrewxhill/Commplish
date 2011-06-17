@@ -1,0 +1,75 @@
+<html>
+<head>
+    <title>Commplish</title>
+    <link rel="stylesheet" type="text/css" href="http://fonts.googleapis.com/css?family=Ubuntu">
+    <link rel="stylesheet" href="/css/main.css">
+    <link rel="stylesheet" href="/css/users.css">
+</head>
+<body>
+    <div id="header">
+        <div id="content">commplish</div>
+    </div>
+    <div id="container">
+        <div id="content">
+          {% if user %}
+            <div id="profile">
+                <div class="content">
+                    <div class="welcome"><span>{{user.nickname}}</span></div>
+                    <img class="icon" src="/api/user/icon" />
+                    <div class="link selected">Earned Badges</div>
+                    <div class="link">Administers 3 Projects</div>
+                    <div class="link">Administers 2 Badge Sets</div>
+                    <div class="in-out"><a href="{{logout_url}}">Log out?</a></div>
+                </div>
+            </div>
+            <div id="badges">
+                <div class="name">Badges earned</div>
+                <div class="badge-set">
+                    <div class="name">Set name: Species geography explorer</div>
+                    <div class="projects">
+                        <div class="title">Projects using this set:</div>
+                        <div class="project"><a href="">Map of Life</a></div>
+                        <div class="project"><a href="">Encyclopedia of Life</a></div>
+                    </div>
+                    <div class="badge">
+                        <img src="/images/fake/1.png" />
+                        <div class="title">Member</div>
+                    </div>
+                    <div class="badge">
+                        <img src="/images/fake/5.png" />
+                        <div class="title">Submitted First Photo</div>
+                    </div>
+                    <div class="badge">
+                        <img src="/images/fake/4.png" />
+                        <div class="title">Member over 1 year</div>
+                    </div>
+                    <div class="badge">
+                        <img src="/images/fake/6.png" />
+                        <div class="title">Made first comment</div>
+                    </div>
+                </div>
+                <div class="badge-set">
+                    <div class="name">Set name: Biodiversity network keepers</div>
+                    <div class="projects">
+                        <div class="title">Projects using this set:</div>
+                        <div class="project"><a href="">VertNet</a></div>
+                        <div class="project"><a href="">GBIF</a></div>
+                    </div>
+                    <div class="badge">
+                        <img src="/images/fake/15.png" />
+                        <div class="title">Member</div>
+                    </div>
+                    <div class="badge">
+                        <img src="/images/fake/13.png" />
+                        <div class="title">Made annotation</div>
+                    </div>
+                </div>
+            </div>
+          {% else %}
+            <div class="in-out"><a href="{{login_url}}">Log In</a></div>
+          {% endif %}
+        </div>
+        <div id="footer">(c) commplish</div>
+    </div>
+</body>
+</html>

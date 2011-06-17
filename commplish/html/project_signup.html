@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+  <head>   
+    <link rel="stylesheet" type="text/css" href="http://fonts.googleapis.com/css?family=Ubuntu">
+    <link rel="stylesheet" href="/css/main.css">
+    <link rel="stylesheet" href="/css/forms/main.css">
+    <link rel="stylesheet" href="/css/profile.css">
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.6.1/jquery.min.js" type="text/javascript"></script>
+    <script>
+        var nickname = null;
+        $('document').ready(function(){
+            $('input.create').attr('disabled','true');
+            $('input.create').fadeTo('fast',0.3);
+            $('input.project-name').change(function(){
+                nickname = $(this).val();
+                $.getJSON('/api/available/project/'+nickname, function(data) {
+                    if (data.available == true){
+                        $('input.project-name').css('background','#fff');
+                        $('input.create').removeAttr('disabled');
+                        $('input.create').fadeTo('fast',1.0);
+                    } else {
+                        $('input.project-name').val(nickname + " already taken!");
+                        $('input.project-name').css('background','#ee7799');
+                    }
+                });
+            });
+        });
+    </script>
+  </head>
+    <body>
+        <div id="header">
+            <div id="content">commplish</div>
+        </div>
+        <div id="container">
+            <div id="content">
+                <div id="profile">
+                    <div class="content">
+                        <div class="title">Project name</div>
+                        <img class="icon" src="http://www.gravatar.com/avatar/482304?s=144" />
+                        <div class="url"><a >your url</a></div>
+                        <div class="about">about your project</div>
+                        <div class="link badges">no badges</div>
+                        <div class="link members">no members</div>
+                        <div class="link age">not started</div>
+                    </div>
+                </div>
+                <div id="block">
+                    <form class="content-block" action="/org/project/update" method="post">
+                        <div class="input-header">
+                            Project Details
+                        </div>
+                        <div class="input-row">
+                            <label>Full name</label>
+                            <div class="input-column">
+                                <input type="text" name="project-full-name" class="full"/>
+                                <div class="description">The full name of the project you are creating.</div>
+                            </div>
+                        </div>
+                        <div class="input-row">
+                            <label>Display name</label>
+                            <div class="input-column">
+                                <input type="text" name="project-name" class="full project-name"/>
+                                <div class="description">A unique single word name for display with your profile and elsewhere.</div>
+                            </div>
+                        </div>
+                        <div class="input-row">
+                            <label>Project url</label>
+                            <div class="input-column">
+                                <input type="text" name="project-url" class="full"/>
+                                <div class="description">An external url for this project</div>
+                            </div>
+                        </div>
+                        <div class="input-row tall">
+                            <label>Description</label>
+                            <div class="input-column">
+                                <textarea name="project-description"></textarea>
+                                <div class="description">A brief description of the project</div>
+                            </div>
+                        </div>
+                        <div class="input-row">
+                            <label>Project icon</label>
+                            <div class="input-column">
+                                <input type="file" name="project-icon" class="full"/>
+                                <div class="description">An icon or avatar to be displayed with your project</div>
+                            </div>
+                        </div>
+                        <input type="hidden" value="badges" name="target" />
+                        <input type="submit" name="create" value="create" class="button create" />
+                        <input type="submit" name="cancel" value="cancel" class="button cancel" />
+                    </form>
+                </div>
+            </div>
+            <div id="footer">(c) commplish</div>
+        </div>
+    </body>
+</html>
