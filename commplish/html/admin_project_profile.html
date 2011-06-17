@@ -3,42 +3,28 @@
     <title>Commplish</title>
     <link rel="stylesheet" type="text/css" href="http://fonts.googleapis.com/css?family=Ubuntu">
     <link rel="stylesheet" href="/css/main.css">
-    <link rel="stylesheet" href="/css/profile_admin.css">
+    <link rel="stylesheet" href="/css/profile.css">
     <link rel="stylesheet" href="/css/forms/main.css">
+    <link rel="stylesheet" href="/css/profile_admin.css">
     <script src="//ajax.googleapis.com/ajax/libs/jquery/1.6.1/jquery.min.js" type="text/javascript"></script>
     <script>
         $('document').ready(function(){
             var urlparts = window.location.pathname.split('/');
             var project = urlparts[urlparts.length - 1];
+            var cl;
+            $('#profile .menu a').click(function(){
+                $('#profile .menu').children('a').removeClass('selected');
+                cl = $(this).attr('class');
+                $(this).addClass('selected');
+                $('#block').children('form').removeClass('selected');
+                $('#block').find('#'+cl).addClass('selected');
+            });
+            
+            
             $.getJSON('/api/project/'+project+'?s=144', function(data) {
-                $('#profile .content .title').val(data.fullName);
-                $('#profile .content .url').html(
-                    $('<a>').attr('href',data.url).text('project website')
-                );
+                $('#block .project-full-name').val(data.fullName);
+                $('#block .project-description').val(data.about);
                 $('#profile .content .icon').attr('src',data.icon);
-                $('#profile .content .about').val(data.about);
-                $('#profile .content .link.badges').text('Awards from '+data.collections.length+' collections');
-                $('#profile .content .link.members').text(data.members+' members');
-                $('#profile .content .link.age').text('Awarding for '+data.age);
-               
-                if (data.collections.length == 0){
-                    $('#badges').append(
-                        $('<div>').addClass('name').text(data.name + ' is not awarding any badges yet')
-                    ); 
-                } else {
-                    for ( i in data.collections ) {
-                        console.log(data.collections[i].title);
-                        var bs = $('<div>').addClass('badge-set');
-                        bs.append($('<div>').addClass('name').text(data.collections[i].title));
-                        for (b in data.collections[i].badges) {
-                            var bg = $('<div>').addClass('badge');
-                            bg.append($('<img>').attr('src',data.collections[i].badges[b].icon).attr('title',data.collections[i].badges[b].about));
-                            bg.append($('<div>').addClass('title').text(data.collections[i].badges[b].title));
-                            bs.append(bg);
-                        }
-                        $('#badges').append(bs);
-                    }
-                }
             });
         });
     </script>
@@ -52,19 +38,141 @@
         <div id="content">
             <div id="profile">
                 <div class="content">
-                    <form class="content-block" action="/org/profile/update" method="post">
-                        <input class="title" value="name">
-                        <img class="icon" src="" />
-                        <div class="url"></div>
-                        <textarea class="about"></textarea>
-                        <div class="link badges"></div>
-                        <div class="link members"></div>
-                        <div class="link age"></div>
-                        <input type="submit" name="action" value="update" class="button submit small" />
-                    </form>
+                    <img class="icon" />
+                    <div class="title">Edit this project</div>
+                    <div class="menu">
+                        <a class="details selected">Edit Profile</a>
+                        <a class="change">Change icon</a>
+                        <a class="follow">Follow a collection</a>
+                        <a class="join">Join a collection</a>
+                        <a class="give">Give a badge</a>
+                        <a class="drop">Drop a collection</a>
+                    </div>
                 </div>
             </div>
-            <div id="badges">
+            <div id="block">
+                
+                
+                    <form id="details" class="content-block selected" action="/org/project/update" method="post" enctype="multipart/form-data" >
+                        <div class="input-header">
+                            Project Details
+                        </div>
+                        <div class="input-row">
+                            <label>Full name</label>
+                            <div class="input-column">
+                                <input type="text" name="project-full-name" class="full project-full-name"/>
+                                <div class="description">The full name of the project you are creating.</div>
+                            </div>
+                        </div>
+                        <div class="input-row tall">
+                            <label>Description</label>
+                            <div class="input-column">
+                                <textarea name="project-description" class="project-description"></textarea>
+                                <div class="description">A brief description of the project</div>
+                            </div>
+                        </div>
+                        <input type="submit" name="action" value="save" class="button save" />
+                    </form>
+                    
+                    
+                    <form id="change" class="content-block" action="/org/project/icon" method="post" enctype="multipart/form-data" >
+                        <div class="input-header">
+                            Project icon
+                        </div>
+                        <div class="input-row">
+                            <label>New icon</label>
+                            <div class="input-column">
+                                <input type="file" name="project-icon" class="file"/>
+                                <div class="description">An icon or avatar to be displayed with your project</div>
+                            </div>
+                        </div>
+                        <input type="submit" name="action" value="update" class="button update" />
+                    </form>
+                    
+                    
+                
+                    <form id="follow" class="content-block" action="/org/project/update" method="post" enctype="multipart/form-data" >
+                        <div class="input-header">
+                            Follow a collection
+                        </div>
+                        <div class="input-overview">
+                            By Following a new collection, the badges awarded in that collection to any of your users will be reported in your user profile requests. 
+                            This allows you to quickly see, and honor, a users accomplishments in another Project. 
+                        </div>
+                        <div class="input-row">
+                            <label>Collection ID</label>
+                            <div class="input-column">
+                                <input type="text" name="project-full-name" class="full follow-collection-id"/>
+                                <div class="description">A collection's ID can be found in the url of its profile page.</div>
+                            </div>
+                        </div>
+                        <input type="submit" name="action" value="follow" class="button follow" />
+                    </form>
+                
+                
+                    <form id="join" class="content-block" action="/org/project/update" method="post" enctype="multipart/form-data" >
+                        <div class="input-header">
+                            Join a collection
+                        </div>
+                        <div class="input-overview">
+                            Joining a collection will allow you to grant badges from that collection even though you didn't start it. Join 
+                            requests must be approved by an admin to the collection. 
+                        </div>
+                        <div class="input-row">
+                            <label>Collection ID</label>
+                            <div class="input-column">
+                                <input type="text" name="project-full-name" class="full follow-collection-id"/>
+                                <div class="description">A collection's ID can be found in the url of its profile page.</div>
+                            </div>
+                        </div>
+                        <input type="submit" name="action" value="send request" class="button join" />
+                    </form>
+                    
+                    
+                    <form id="give" class="content-block" action="/org/project/update" method="post" enctype="multipart/form-data" >
+                        <div class="input-header">
+                            Give a badge
+                        </div>
+                        <div class="input-overview">
+                            Sometimes you will want to give badges to users outside of your programmatic interface. This is the place.
+                        </div>
+                        <div class="input-row">
+                            <label>User ID</label>
+                            <div class="input-column">
+                                <input type="text" name="user-id" class="full user-id"/>
+                                <div class="description">This is the human readable user id on Commplish, not the md5 used in API requests.</div>
+                            </div>
+                        </div>
+                        <div class="input-row">
+                            <label>Badge</label>
+                            <div class="input-column">
+                                <input type="text" name="badge-id" class="full badge-id"/>
+                                <div class="description">This will be a dropdown or something ideally when we get this straightened.</div>
+                            </div>
+                        </div>
+                        <input type="submit" name="action" value="give badge" class="button give" />
+                    </form>
+                    
+                    <form id="drop" class="content-block" action="/org/project/update" method="post" enctype="multipart/form-data" >
+                        <div class="input-header">
+                            Drop a collection
+                        </div>
+                        <div class="input-overview">
+                            Droping a collection cannot be undone. If you are the sole-administrator of the collection, it will be gone. Users 
+                            will keep their badges unless they delete them. If you are not the sole-administrator, you will have to request to Join 
+                            the collection if you decide to use it again. 
+                        </div>
+                        <div class="input-row">
+                            <label>Collection ID</label>
+                            <div class="input-column">
+                                <input type="text" name="collection-id" class="full drop-collection-id"/>
+                                <div class="description">A collection's ID can be found in the url of its profile page.</div>
+                            </div>
+                        </div>
+                        <input type="submit" name="action" value="drop" class="button drop" />
+                    </form>
+                    
+                    
             </div>
         </div>
         <div id="footer">(c) commplish</div>
