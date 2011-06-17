@@ -50,3 +50,4 @@ class Project(db.Model):
     admins = db.ListProperty(db.Key)
     joinDate = db.DateTimeProperty()
     secret = db.StringProperty()
+    verified = db.BooleanProperty(default=False)

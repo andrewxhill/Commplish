@@ -8,6 +8,7 @@
     <script src="//ajax.googleapis.com/ajax/libs/jquery/1.6.1/jquery.min.js" type="text/javascript"></script>
     <script>
         var nickname = null;
+        var url = null;
         $('document').ready(function(){
             $('input.create').attr('disabled','true');
             $('input.create').fadeTo('fast',0.3);
@@ -15,12 +16,32 @@
                 nickname = $(this).val();
                 $.getJSON('/api/available/project/'+nickname, function(data) {
                     if (data.available == true){
-                        $('input.project-name').css('background','#fff');
-                        $('input.create').removeAttr('disabled');
-                        $('input.create').fadeTo('fast',1.0);
+                        if (url != null) {
+                            $('input.project-name').css('background','#fff');
+                            $('input.create').removeAttr('disabled');
+                            $('input.create').fadeTo('fast',1.0);
+                        }
                     } else {
                         $('input.project-name').val(nickname + " already taken!");
                         $('input.project-name').css('background','#ee7799');
+                        nickname = null;
+                    }
+                });
+            });
+            
+            $('input.project-url').change(function(){
+                url = $(this).val();
+                $.getJSON('/api/available/url/'+url, function(data) {
+                    if (data.available == true){
+                        if (nickname != null) {
+                            $('input.project-url').css('background','#fff');
+                            $('input.create').removeAttr('disabled');
+                            $('input.create').fadeTo('fast',1.0);
+                        }
+                    } else {
+                        $('input.project-url').val(url + "invalid or already taken!");
+                        $('input.project-url').css('background','#ee7799');
+                        url = null;
                     }
                 });
             });
@@ -66,7 +87,7 @@
                         <div class="input-row">
                             <label>Project url</label>
                             <div class="input-column">
-                                <input type="text" name="project-url" class="full"/>
+                                <input type="text" name="project-url" class="full project-url"/>
                                 <div class="description">An external url for this project</div>
                             </div>
                         </div>

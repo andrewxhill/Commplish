@@ -26,6 +26,17 @@ class NameTest(webapp.RequestHandler):
             pk = db.get(db.Key.from_path('UserModel',name.strip().lower()))
         elif model == 'project':
             pk = db.get(db.Key.from_path('Project',name.strip().lower()))
+        elif model == 'url':
+            pk = Project.all(keys_only=True).filter('url = ', name).fetch(1)
+            if len(pk) == 0:
+                out = {'available': True}
+            else: 
+                out = {'available': False}
+            self.response.out.write(
+                    simplejson.dumps(out)
+                )
+            return
+            
         if pk:
             out = {'available': False}
         else:
