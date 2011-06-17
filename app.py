@@ -2,6 +2,11 @@
 Copyright (C)  Andrew Hill
 """
 from __future__ import with_statement
+
+# Use Django 1.2.
+from google.appengine.dist import use_library
+use_library('django', '1.2')
+
 import cgi
 import logging
 from google.appengine.ext import db
