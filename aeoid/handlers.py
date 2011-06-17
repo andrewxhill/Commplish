@@ -27,6 +27,8 @@ from openid.extensions import ax
 from aeoid import store
 from aeoid import users
 
+import logging
+
 # list of attributes to request via Simple Registration
 OPENID_SREG_ATTRS = ['nickname', 'email']
 
@@ -77,6 +79,7 @@ class BeginLoginHandler(BaseHandler):
             
         path = os.path.join(root_path, 'commplish', 'templates', filename)
         #self.response.out.write(template.render(path, template_args))
+        logging.info('PATH ' + path)
         self.render_template('none.html',template_args,path)
         return
 
