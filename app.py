@@ -203,7 +203,10 @@ class LoadFakeData(BaseHandler):
         m.update(user.email().strip().lower())
         usermd5 = str(m.hexdigest())
         
+        usr = UserModel.all().filter('md5 = ',usermd5).fetch(1)[0]
+        
         """Create a user instance"""
+        """
         usr = UserModel(
                     key_name = "andrewxhill",
                     nickname = "andrewxhill",
@@ -213,6 +216,7 @@ class LoadFakeData(BaseHandler):
                     joinDate = datetime.datetime.now(),
                     projects = [],
                     admins = [] )
+        """
         #db.put(usr)
         
         
