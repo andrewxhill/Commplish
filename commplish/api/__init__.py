@@ -80,14 +80,18 @@ class ProjectService(webapp.RequestHandler):
         ageunit = 'days' if int(age.days) > 1 else 'day'
         memberct = len(UserModel.all(keys_only=True).filter('projects = ', pk).fetch(1000))
         memberct = str(memberct) if memberct < 1000 else "1000+"
-        
+        if p.icon:
+            icon = images.get_serving_url(p.icon, size=256)
+        else:
+            icon = None
+            
         out = {
                 "pid": pid,
                 "name": p.name,
                 "fullName": p.fullName,
                 "url": p.url,
                 "about": p.about,
-                "icon": images.get_serving_url(p.icon, size=256),
+                "icon": icon,
                 "age": "%s %s" % (str(age.days + 1), ageunit),
                 "badgeSets": [],
                 "members": memberct,
