@@ -342,27 +342,26 @@ class CreateNewProject(BaseHandler):
         name = self.request.get('project-name', None)
         url = self.request.get('project-url', None)
         desc = self.request.get('project-description', None)
-        icon = self.request.get('project-icon', None)
-        
+        #icon = self.request.get('project-icon', None)
+        icon = self.request.get('project-icon')
+        if icon:
+            
+            img = files.blobstore.create(mime_type='img/png')
+            with files.open(img, 'a') as f:
+                f.write(icon)
+            files.finalize(img)
+            
+            icon = str(files.blobstore.get_blob_key(img))
+            logging.error(icon)
+            
         if self._checkurl(url) and self._checkname(name):
-            """
-            fullName = db.TextProperty()
-            name = db.StringProperty()
-            url = db.LinkProperty()
-            about = db.TextProperty()
-            icon = db.StringProperty()
-            badgeSets = db.ListProperty(db.Key)
-            admins = db.ListProperty(db.Key)
-            joinDate = db.DateTimeProperty()
-            secret = db.StringProperty()
-            verified = db.BooleanProperty(default=False)
-            """
             p = Project(
                     key_name = name.strip().lower(),
                     fullName = fullName.strip(),
                     name = name,
                     url = self._validurl(url),
                     about = desc,
+                    icon = icon,
                     admins = [self.user.key()],
                     joinDate = datetime.datetime.now(),
                     secret = str(uuid.uuid4())
