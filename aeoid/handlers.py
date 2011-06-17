@@ -17,7 +17,6 @@
 
 import logging
 import os
-
 from google.appengine.ext import webapp
 from google.appengine.ext.webapp import template
 from openid.consumer.consumer import Consumer
@@ -44,10 +43,11 @@ class BaseHandler(webapp.RequestHandler):
     super(BaseHandler, self).initialize(request, response)
     self.session = self.request.environ.get('aeoid.beaker.session')
 
-  def render_template(self, filename, template_args=None):
+  def render_template(self, filename, template_args=None, path=None):
     if not template_args:
       template_args = {}
-    path = os.path.join(os.path.dirname(__file__), 'templates', filename)
+    if path is None:
+        path = os.path.join(os.path.dirname(__file__), 'templates', filename)
     self.response.out.write(template.render(path, template_args))
 
   def get_consumer(self):
@@ -76,7 +76,8 @@ class BeginLoginHandler(BaseHandler):
             
             
         path = os.path.join(root_path, 'commplish', 'templates', filename)
-        self.response.out.write(template.render(path, template_args))
+        #self.response.out.write(template.render(path, template_args))
+        self.render_template('none.html',template_args,path)
         return
 
     consumer = self.get_consumer()

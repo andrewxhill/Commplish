@@ -16,8 +16,8 @@
                 nickname = $(this).val();
                 $.getJSON('/api/available/project/'+nickname, function(data) {
                     if (data.available == true){
+                        $('input.project-name').css('background','#fff');
                         if (url != null) {
-                            $('input.project-name').css('background','#fff');
                             $('input.create').removeAttr('disabled');
                             $('input.create').fadeTo('fast',1.0);
                         }
@@ -31,10 +31,10 @@
             
             $('input.project-url').change(function(){
                 url = $(this).val();
-                $.getJSON('/api/available/url/'+url, function(data) {
+                $.getJSON('/api/url', {url: url}, function(data) {
                     if (data.available == true){
+                        $('input.project-url').css('background','#fff');
                         if (nickname != null) {
-                            $('input.project-url').css('background','#fff');
                             $('input.create').removeAttr('disabled');
                             $('input.create').fadeTo('fast',1.0);
                         }

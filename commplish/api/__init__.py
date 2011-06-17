@@ -18,6 +18,33 @@ import datetime
 import os
 
 
+class UrlTest(webapp.RequestHandler):
+    def _clean(self,url):
+        url = url.lstrip('http://')
+        url = url.lstrip('www.')
+        urls = ["http://" + url, "http://www." + url]
+        return urls
+    def get(self):
+        self.post()
+    def post(self):
+        url = self.request.get('url', None)
+        out = {'available': None} #invalid
+        if url:
+            urls = self._clean(url)
+            pk = Project.all(keys_only=True).filter('url = ', urls[0]).fetch(1)
+            if len(pk) == 0:
+                pk = Project.all(keys_only=True).filter('url = ', urls[1]).fetch(1)
+                
+                
+            if len(pk) == 0:
+                out = {'available': True}
+            else: 
+                out = {'available': False}
+            self.response.out.write(
+                    simplejson.dumps(out)
+                )
+        return
+        
 class NameTest(webapp.RequestHandler):
     def get(self,model,name):
         self.post(model,name)
@@ -26,16 +53,6 @@ class NameTest(webapp.RequestHandler):
             pk = db.get(db.Key.from_path('UserModel',name.strip().lower()))
         elif model == 'project':
             pk = db.get(db.Key.from_path('Project',name.strip().lower()))
-        elif model == 'url':
-            pk = Project.all(keys_only=True).filter('url = ', name).fetch(1)
-            if len(pk) == 0:
-                out = {'available': True}
-            else: 
-                out = {'available': False}
-            self.response.out.write(
-                    simplejson.dumps(out)
-                )
-            return
             
         if pk:
             out = {'available': False}
@@ -224,6 +241,7 @@ application = webapp.WSGIApplication([
                                       ('/api/user/([^/]+)', UserService),
                                       ('/api/user/([^/]+)/([^/]+)', UserService),
                                       ('/api/available/([^/]+)/([^/]+)', NameTest),
+                                      ('/api/url', UrlTest),
                                      ],      
                                      debug=False)
 application = middleware.AeoidMiddleware(application)
