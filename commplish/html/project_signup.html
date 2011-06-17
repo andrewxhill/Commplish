@@ -66,7 +66,7 @@
                     </div>
                 </div>
                 <div id="block">
-                    <form class="content-block" action="/org/project/update" method="post">
+                    <form class="content-block" action="/org/project/create" method="post">
                         <div class="input-header">
                             Project Details
                         </div>
@@ -105,9 +105,8 @@
                                 <div class="description">An icon or avatar to be displayed with your project</div>
                             </div>
                         </div>
-                        <input type="hidden" value="badges" name="target" />
-                        <input type="submit" name="create" value="create" class="button create" />
-                        <input type="submit" name="cancel" value="cancel" class="button cancel" />
+                        <input type="submit" name="action" value="create" class="button create" />
+                        <input type="submit" name="action" value="cancel" class="button cancel" />
                     </form>
                 </div>
             </div>

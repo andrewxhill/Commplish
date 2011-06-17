@@ -20,7 +20,7 @@ import os
 
 class UrlTest(webapp.RequestHandler):
     def _clean(self,url):
-        url = url.lstrip('http://')
+        url = url.lower().lstrip('http://')
         url = url.lstrip('www.')
         urls = ["http://" + url, "http://www." + url]
         return urls
