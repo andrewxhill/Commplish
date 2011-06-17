@@ -25,6 +25,7 @@ class UserBadge(db.Model):
     recieved = db.DateTimeProperty()
    
 class Collection(db.Model):
+    #key_name = title.strip().lower().replace(' ','_')
     title = db.StringProperty()
     about = db.TextProperty()
     has_badges = db.BooleanProperty(default=True)
@@ -34,6 +35,8 @@ class Collection(db.Model):
     #badges = RefProp from Badge
     
 class Badge(db.Model):
+    #key_name = title.strip().lower().replace(' ','_')
+    #parent = Collection
     title = db.StringProperty()
     about = db.TextProperty()
     collection = db.ReferenceProperty(Collection, collection_name="badges")

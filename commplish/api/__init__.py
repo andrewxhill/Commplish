@@ -1,6 +1,8 @@
 """
 Copyright (C)  2011 Aaron Steele, Andrew Hill, Sander Pick
 """
+from google.appengine.dist import use_library
+use_library('django', '1.2')
 import cgi
 import logging
 from google.appengine.ext import db
@@ -15,6 +17,8 @@ import simplejson
 import pickle
 import md5
 import datetime
+import re
+import urllib
 import os
 
 
@@ -53,6 +57,10 @@ class NameTest(webapp.RequestHandler):
             pk = db.get(db.Key.from_path('UserModel',name.strip().lower()))
         elif model == 'project':
             pk = db.get(db.Key.from_path('Project',name.strip().lower()))
+        elif model == 'collection':
+            name = urllib.unquote(name)
+            name = re.sub(r'[^a-zA-Z0-9-]', '_', name.strip().lower())
+            pk = db.get(db.Key.from_path('Collection',name))
             
         if pk:
             out = {'available': False}
@@ -115,6 +123,40 @@ class ProjectService(webapp.RequestHandler):
                     s['badges'].append(t)
                 out['collections'].append(s)
                 
+        self.response.out.write(
+            simplejson.dumps(out)
+        )
+         
+class CollectionService(webapp.RequestHandler):
+    def get(self,cid):
+        self.post(cid)
+    def post(self,cid):
+        pk = db.Key.from_path('Collection',cid.strip().lower())
+        co = db.get(pk)
+        if co:
+            sz = self.request.get('s', 64)
+            
+            try:
+                assert int(sz) <= 256
+            except:
+                sz = 64
+            out = {
+                    "cid": cid,
+                    "title": co.title,
+                    "about": co.about,
+                    "projects": [],
+                    "badges": []
+                  }
+            """Add all the badges available"""
+            for b in co.badges:
+                t = {
+                        "title": b.title,
+                        "about": b.about,
+                        "icon": images.get_serving_url(b.icon, size=int(sz)),
+                    }
+                out['badges'].append(t)
+        else:
+            out = {'error': 'collection not found'}
         self.response.out.write(
             simplejson.dumps(out)
         )
@@ -242,6 +284,7 @@ class UserService(webapp.RequestHandler):
       
 application = webapp.WSGIApplication([
                                       ('/api/project/([^/]+)', ProjectService),
+                                      ('/api/collection/([^/]+)', CollectionService),
                                       ('/api/user/([^/]+)', UserService),
                                       ('/api/user/([^/]+)/([^/]+)', UserService),
                                       ('/api/available/([^/]+)/([^/]+)', NameTest),

@@ -6,7 +6,6 @@ from __future__ import with_statement
 # Use Django 1.2.
 from google.appengine.dist import use_library
 use_library('django', '1.2')
-
 import cgi
 import logging
 from google.appengine.ext import db
@@ -24,6 +23,7 @@ import os
 import datetime
 import urllib
 import uuid
+import re
 
 class AppsFederationHandler(webapp.RequestHandler):
   """Handles openid login for federated Google Apps Marketplace apps."""
@@ -51,6 +51,14 @@ class LogOut(webapp.RequestHandler):
         self.redirect(users.create_logout_url('/'))
         
 class BaseHandler(webapp.RequestHandler):
+    def __init__(self):
+        self.user = users.get_current_user()
+        self.usermd5 = None
+        if self.user:
+            m = md5.new()
+            m.update(self.user.email().strip().lower())
+            self.usermd5 = str(m.hexdigest())
+        
     def render_template(self, file, template_vals):
         path = os.path.join(os.path.dirname(__file__), 'commplish', 'templates', file )
         logging.error(path)
@@ -64,18 +72,18 @@ class BaseHandler(webapp.RequestHandler):
     def login(self, url):
         self.redirect(users.create_login_url(url))
         
+    def _hasprojectauthority(self,pid):
+        if db.Key.from_path('Project', pid.strip().lower()) in self.user.admins:
+            return True
+        else:
+            return False
+        
 class SiteHome(webapp.RequestHandler):
     def get(self):
         self.redirect('/home')
             
-class UserAdmin(BaseHandler):
-    def __init__(self):
-        self.usermd5 = None
-        self.user = None
-    
+class UserAdmin(BaseHandler):    
     def profile(self):
-        self.user = users.get_current_user()
-        
         if self.user is None:
             self.login('/home')
             return 
@@ -95,16 +103,10 @@ class UserAdmin(BaseHandler):
         self.profile()
             
 class UserProfile(BaseHandler):
-    def __init__(self):
-        self.usermd5 = None
-        self.user = None
     def get(self, name):
         self.push_html('public_user_profile.html')
             
 class ProjectProfile(BaseHandler):
-    def __init__(self):
-        pass
-        
     def post(self,pid):
         self.get(pid)
     
@@ -115,12 +117,6 @@ class ProjectProfile(BaseHandler):
         self.push_html('public_project_profile.html')
        
 class ProjectProfileAdmin(BaseHandler):
-    def __init__(self):
-        self.user = users.get_current_user()
-        m = md5.new()
-        m.update(self.user.email().strip().lower())
-        self.usermd5 = str(m.hexdigest())
-        
     def post(self,pid):
         self.get(pid)
     
@@ -129,8 +125,12 @@ class ProjectProfileAdmin(BaseHandler):
         if len(um)==0:
             self.redirect('/home')
             return
-        self.push_html('admin_project_profile.html')
-        return
+        if Project.get_by_key_name(pid.strip().lower()):
+            self.push_html('admin_project_profile.html')
+            return
+        else:
+            self.redirect('/home')
+            return
 
 class GiveFakeBadges(BaseHandler):
     def get(self):
@@ -208,8 +208,9 @@ class LoadFakeData(BaseHandler):
         usr.admins.append(proj.key())
         
         title = "Species cartographer"
+        kn = re.sub(r'[^a-zA-Z0-9-]', '_', title.strip().lower())
         bds = Collection(
-                    key_name = title.lower().replace(' ','_'),
+                    key_name = kn,
                     title = title,
                     about = "These badged are given to members who help us discover where species exist",
                     projects = []
@@ -249,9 +250,13 @@ class LoadFakeData(BaseHandler):
                 f.write(open(path, 'r').read())
             files.finalize(img)
             icon_key = files.blobstore.get_blob_key(img)
-        
+            
+            ttl = titles.pop()
+            bkn = re.sub(r'[^a-zA-Z0-9-]', '_', ttl.strip().lower())
             bg = Badge(
-                    title = titles.pop(),
+                    parent = bds,
+                    key_name = bkn,
+                    title = ttl,
                     about = abouts.pop(),
                     collection = bds,
                     icon = str(icon_key)
@@ -394,21 +399,112 @@ class CreateNewProject(BaseHandler):
             self.user.projects.append(p.key())
             db.put(self.user)
             
-            rurl = "/project/%s" % name
+            rurl = "/admin/project/%s" % name
             self.redirect(rurl)
             return
             
         self.redirect('/')
+        
+
+class CreateNewCollection(BaseHandler):       
+    def post(self,action):
+        self.get(action)
+    
+    def get(self,action):
+        if action=='create':
+            self._createcollection()
             
+    def _checktitle(self, title):
+        title = re.sub(r'[^a-zA-Z0-9-]', '_', title.strip().lower())
+        co = Collection.get_by_key_name(title)
+        return True if co is None else False
+        
+    def _createcollection(self):
+        if self.request.get('action', None) == "cancel":
+            self.redirect('/home')
+            return
+                    
+        try:
+            self.user = UserModel.all().filter('md5 = ', self.usermd5).fetch(1)[0]
+        except:
+            self.user = None
+            
+        if not self.user:
+            logging.error('bad md5')
+            logging.error('bad md5')
+            logging.error('bad md5')
+            logging.error('bad md5')
+            logging.error('bad md5')
+            self.redirect('/home')
+            return
+        
+        title = self.request.get('collection-title', None)
+        desc = self.request.get('collection-description', None)
+        proj = self.request.get('project-identifier', None)
+        
+        if self._checktitle(title) and self._hasprojectauthority(proj):
+            
+            proj_key = db.Key.from_path('Project', proj.strip().lower())
+            
+            kn = re.sub(r'[^a-zA-Z0-9-]', '_', title.strip().lower())
+            col = Collection(
+                        key_name = kn,
+                        title = title,
+                        about = desc,
+                        projects = [proj_key]
+                        )
+            db.put(col)
+            
+            p = Project.get(proj_key)
+            p.collections.append(col.key())
+            db.put(p)
+            
+            rurl = "/collections/%s" % kn
+            self.redirect(rurl)
+            return
+            
+        self.redirect('/project/mol')
+            
+class CollectionProfile(BaseHandler):
+    def post(self,cid):
+        self.get(cid)
+    
+    def get(self,cid):
+        self.push_html('public_collection_profile.html')
+       
+class CollectionProfileAdmin(BaseHandler):
+    def post(self,cid):
+        self.get(cid)
+    
+    def get(self,cid):
+        um = UserModel.all().filter('md5 = ',self.usermd5).fetch(1)
+        if len(um)>0:
+            um = um[0]
+            col = Collection.get_by_key_name(cid.lower().strip())
+            a = False
+            for p in um.admins:
+                if p in col.projects:
+                    a = True
+            
+            if a:
+                self.push_html('admin_collection_profile.html')
+                return
+            
+        self.redirect('/home')
+        return
+       
                               
                               
 application = webapp.WSGIApplication([('/', SiteHome),
                                       ('/user/([^/]+)', UserProfile),
                                       ('/home', UserAdmin),
+                                      ('/collection/([^/]+)', CollectionProfile),
                                       ('/project/([^/]+)', ProjectProfile),
                                       ('/admin/project/([^/]+)', ProjectProfileAdmin),
+                                      ('/admin/collection/([^/]+)', CollectionProfileAdmin),
                                       ('/org/user/([^/]+)', CreateNewUser),
                                       ('/org/project/([^/]+)', CreateNewProject),
+                                      ('/org/collection/([^/]+)', CreateNewCollection),
                                       ('/new', CreateNewProject),
                                       #('/new/([^/]+)', CreateNewProject),
                                       

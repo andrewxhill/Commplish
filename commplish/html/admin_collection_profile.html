@@ -1,0 +1,201 @@
+<html>
+<head>
+    <title>Commplish</title>
+    <link rel="stylesheet" type="text/css" href="http://fonts.googleapis.com/css?family=Ubuntu">
+    <link rel="stylesheet" href="/css/main.css">
+    <link rel="stylesheet" href="/css/profile.css">
+    <link rel="stylesheet" href="/css/forms/main.css">
+    <link rel="stylesheet" href="/css/profile_admin.css">
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.6.1/jquery.min.js" type="text/javascript"></script>
+    <script>
+        $('document').ready(function(){
+            var urlparts = window.location.pathname.split('/');
+            var collection = urlparts[urlparts.length - 1];
+            var cl;
+            
+            $('#block').find('.collection-identifier').val(collection);
+            
+            
+            //add a badge
+            $('#block #badges .add-new-badge').click(function(){
+                $('#block').children('.content-block').removeClass('selected');
+                $('#block').find('#add').addClass('selected');
+            }); 
+                
+            $.getJSON('/api/collection/'+collection+'?s=64', function(data) {
+                $('#block .collection-description').val(data.about);   
+                for ( i in data.badges ) {
+                    var bs = $('<div>').addClass('badge-edit');
+                    bs.append($('<div>').addClass('title').text(data.badges[i].title));
+                    bs.append($('<img>').addClass('icon').attr('src',data.badges[i].icon));
+                    bs.append($('<div>').addClass('about').text(data.badges[i].about));
+                    bs.append($('<div>').addClass('edit').text('edit'));
+                    bs.append($('<div>').addClass('drop').text('drop'));
+                    $('#block #badges').append(bs);
+                }   
+                //modify a badge
+                $('#block .badge-edit .edit').click(function(){
+                    var p = $(this).parent();
+                    var t = $(p).children('.title').text();
+                    var a = $(p).children('.about').text();
+                    $('#block #modify .input-header').text(t + ' badge details');
+                    $('#block #modify .badge-identifier').val(t);
+                    $('#block #modify .badge-description').text(a);
+                    $('#block').children('.content-block').removeClass('selected');
+                    $('#block').find('#modify').addClass('selected');
+                }); 
+            });
+            
+            
+            $('#profile .menu a').click(function(){
+                $('#profile .menu').children('a').removeClass('selected');
+                cl = $(this).attr('class');
+                $(this).addClass('selected');
+                $('#block').children('.content-block').removeClass('selected');
+                $('#block').find('#'+cl).addClass('selected');
+            });
+        });
+    </script>
+
+</head>
+<body>
+    <div id="header">
+        <div id="content">commplish</div>
+    </div>
+    <div id="container">
+        <div id="content">
+            <div id="profile">
+                <div class="content">
+                    <img class="icon" />
+                    <div class="title">Edit this collection</div>
+                    <div class="menu">
+                        <a class="badges selected">Edit badges</a>
+                        <a class="invite">Invite other projects</a>
+                        <a class="details">Edit description</a>
+                    </div>
+                </div>
+            </div>
+                
+            <div id="block">
+                    <div id="badges" class="content-block selected" >
+                        <div class="input-header">
+                            Collection badges
+                            <div class="badge-new">
+                                <button class="add-new-badge">add new</button>
+                            </div>
+                        </div>
+                        <div class="input-overview">
+                            Adding badges here will make them available for you and your collaborators to give to your users. 
+                        </div>
+                    </div>
+                    
+                    
+                    <form id="invite" class="content-block" action="/org/collection/invite" method="post" enctype="multipart/form-data" >
+                        <div class="input-header">
+                            Invite other projects
+                        </div>
+                        <div class="input-overview">
+                            Inviting other projects to this collection will give them full rights to create 
+                            new badges within this set, to give their users these badges, and to add new users to recieve badges. 
+                            Projects must accept your invites before they are added. 
+                        </div>
+                        <div class="input-row">
+                            <label>Project ID</label>
+                            <div class="input-column">
+                                <input type="text" name="project-id" class="full project-id"/>
+                                <div class="description">A project ID can be found in the url of its profile page.</div>
+                            </div>
+                        </div>
+                        <input type="hidden" name="collection-identifier" class="collection-identifier" value="" />
+                        <input type="submit" name="action" value="send request" class="button join" />
+                    </form>
+                    
+                    
+                    <form id="details" class="content-block" action="/org/collection/update" method="post" enctype="multipart/form-data" >
+                        <div class="input-header">
+                            Collection description
+                        </div>
+                        <div class="input-row tall">
+                            <label>Description</label>
+                            <div class="input-column">
+                                <textarea name="collection-description" class="collection-description"></textarea>
+                                <div class="description">A brief description of the collection</div>
+                            </div>
+                        </div>
+                        <input type="hidden" name="collection-identifier" class="collection-identifier" value="" />
+                        <input type="submit" name="action" value="save" class="button save" />
+                    </form>
+                    
+                    <form id="add" class="content-block" action="/org/collection/add" method="post" enctype="multipart/form-data" >
+                        <div class="input-header">
+                            Add new badge
+                        </div>
+                        <div class="input-overview">
+                            Add details for your new badge here. Once created, you will be able to start giving it to your 
+                            users. Both title and icon are required.
+                        </div>
+                        
+                        <div class="input-row">
+                            <label>Title</label>
+                            <div class="input-column">
+                                <input type="text" name="badge-title" class="full badge-title"/>
+                                <div class="description">badge names are permanent and unique in a collection</div>
+                            </div>
+                        </div>
+                        <div class="input-row">
+                            <label>Description</label>
+                            <div class="input-column">
+                                <input type="text" name="badge-description" class="full badge-description"/>
+                                <div class="description">A brief description of the badge</div>
+                            </div>
+                        </div>
+                        <div class="input-row">
+                            <label>Icon</label>
+                            <div class="input-column">
+                                <input type="file" name="badge-icon" class="file"/>
+                                <div class="description">An icon for the badge</div>
+                            </div>
+                        </div>
+                        <input type="hidden" name="collection-identifier" class="collection-identifier" value="" />
+                        <input type="hidden" name="badge-identifier" class="badge-identifier" value="new-commplish-badge" />
+                        <button class="button cancel">cancel</button>
+                        <input type="submit" name="action" value="submit" class="button submit" />
+                            
+                    </form>
+                    
+                    <form id="modify" class="content-block" action="/org/collection/modify" method="post" enctype="multipart/form-data" >
+                        <div class="input-header">
+                            Commentor badge details
+                        </div>
+                        <div class="input-overview">
+                            Modify details for your badge here. The title for a badge cannot be changed 
+                            after creation. Leave the icon file upload blank if you do not wish to change it.
+                        </div>
+                        
+                        <div class="input-row tall">
+                            <label>Description</label>
+                            <div class="input-column">
+                                <textarea name="badge-description" class="badge-description"></textarea>
+                                <div class="description">A brief description of the badge</div>
+                            </div>
+                        </div>
+                        <div class="input-row">
+                            <label>Icon</label>
+                            <div class="input-column">
+                                <input type="file" name="badge-icon" class="file"/>
+                                <div class="description">An icon for the badge</div>
+                            </div>
+                        </div>
+                        <input type="hidden" name="collection-identifier" class="collection-identifier" value="" />
+                        <input type="hidden" name="badge-identifier" class="badge-identifier" value="" />
+                        <button class="button cancel">cancel</button>
+                        <input type="submit" name="action" value="submit" class="button submit" />
+                            
+                    </form>
+                    
+            </div>
+        </div>
+        <div id="footer">(c) commplish</div>
+    </div>
+</body>
+</html>

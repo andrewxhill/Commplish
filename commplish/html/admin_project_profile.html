@@ -12,11 +12,14 @@
             var urlparts = window.location.pathname.split('/');
             var project = urlparts[urlparts.length - 1];
             var cl;
+            
+            $('#block').find('.project-identifier').val(project);
+            
             $('#profile .menu a').click(function(){
                 $('#profile .menu').children('a').removeClass('selected');
                 cl = $(this).attr('class');
                 $(this).addClass('selected');
-                $('#block').children('form').removeClass('selected');
+                $('#block').children('.content-block').removeClass('selected');
                 $('#block').find('#'+cl).addClass('selected');
             });
             
@@ -24,7 +27,24 @@
             $.getJSON('/api/project/'+project+'?s=144', function(data) {
                 $('#block .project-full-name').val(data.fullName);
                 $('#block .project-description').val(data.about);
-                $('#profile .content .icon').attr('src',data.icon);
+                $('#profile .content .icon').attr('src',data.icon);                
+            });
+            
+            var collectionTitle;
+            $('form#create .next').attr('disabled','true');
+            $('form#create .next').fadeTo('fast',0.3);
+            $('form#create .collection-title').change(function(){
+                collectionTitle = $(this).val();
+                $.getJSON('/api/available/collection/'+collectionTitle, function(data) {
+                    if (data.available == true){
+                        $('form#create .collection-title').css('background','#fff');
+                        $('form#create .next').removeAttr('disabled');
+                        $('form#create .next').fadeTo('fast',1.0);
+                    } else {
+                        $('form#create .collection-title').val("Taken! " + collectionTitle);
+                        $('form#create .collection-title').css('background','#ee7799');
+                    }
+                });
             });
         });
     </script>
@@ -41,19 +61,52 @@
                     <img class="icon" />
                     <div class="title">Edit this project</div>
                     <div class="menu">
-                        <a class="details selected">Edit Profile</a>
-                        <a class="change">Change icon</a>
+                        <a class="collections">Manage collections</a>
+                        <a class="create selected">New collection!</a>
                         <a class="follow">Follow a collection</a>
                         <a class="join">Join a collection</a>
-                        <a class="give">Give a badge</a>
                         <a class="drop">Drop a collection</a>
+                        <a class="details">Edit Profile</a>
+                        <a class="change">Change icon</a>
+                        <a class="key">API Key</a>
                     </div>
                 </div>
             </div>
             <div id="block">
-                
-                
-                    <form id="details" class="content-block selected" action="/org/project/update" method="post" enctype="multipart/form-data" >
+                    <div id="collections" class="content-block" >
+                        You have no collections
+                    </div>
+                    <form id="create" class="content-block selected" action="/org/collection/create" method="post" enctype="multipart/form-data" >
+                        <div class="input-header">
+                            Create new collection
+                        </div>
+                        <div class="input-overview">
+                            This is a new collection of badges you would like to give to your users. Users will need to approve your project 
+                            before any badges can be handed out.
+                        </div>
+                        <div class="input-row">
+                            <label>Title</label>
+                            <div class="input-column">
+                                <input type="text" name="collection-title" class="full collection-title"/>
+                                <div class="description">
+                                    Is one line, unique identifier for the collection (a-z,0-9,_,-). 
+                                </div>
+                            </div>
+                        </div>
+                        <div class="input-row tall">
+                            <label>Description</label>
+                            <div class="input-column">
+                                <textarea name="collection-description" class="collection-description"></textarea>
+                                <div class="description">A brief description of the collection</div>
+                            </div>
+                        </div>
+                        <input type="hidden" name="project-identifier" class="project-identifier" value="" />
+                        <input type="submit" name="action" value="next" class="button next" />
+                    </form>
+                    
+                    
+                    
+                    <form id="details" class="content-block" action="/org/project/update" method="post" enctype="multipart/form-data" >
                         <div class="input-header">
                             Project Details
                         </div>
@@ -91,7 +144,7 @@
                     
                     
                 
-                    <form id="follow" class="content-block" action="/org/project/update" method="post" enctype="multipart/form-data" >
+                    <form id="follow" class="content-block" action="/org/project/follow" method="post" enctype="multipart/form-data" >
                         <div class="input-header">
                             Follow a collection
                         </div>
@@ -110,7 +163,7 @@
                     </form>
                 
                 
-                    <form id="join" class="content-block" action="/org/project/update" method="post" enctype="multipart/form-data" >
+                    <form id="join" class="content-block" action="/org/project/join" method="post" enctype="multipart/form-data" >
                         <div class="input-header">
                             Join a collection
                         </div>
@@ -129,31 +182,7 @@
                     </form>
                     
                     
-                    <form id="give" class="content-block" action="/org/project/update" method="post" enctype="multipart/form-data" >
-                        <div class="input-header">
-                            Give a badge
-                        </div>
-                        <div class="input-overview">
-                            Sometimes you will want to give badges to users outside of your programmatic interface. This is the place.
-                        </div>
-                        <div class="input-row">
-                            <label>User ID</label>
-                            <div class="input-column">
-                                <input type="text" name="user-id" class="full user-id"/>
-                                <div class="description">This is the human readable user id on Commplish, not the md5 used in API requests.</div>
-                            </div>
-                        </div>
-                        <div class="input-row">
-                            <label>Badge</label>
-                            <div class="input-column">
-                                <input type="text" name="badge-id" class="full badge-id"/>
-                                <div class="description">This will be a dropdown or something ideally when we get this straightened.</div>
-                            </div>
-                        </div>
-                        <input type="submit" name="action" value="give badge" class="button give" />
-                    </form>
-                    
-                    <form id="drop" class="content-block" action="/org/project/update" method="post" enctype="multipart/form-data" >
+                    <form id="drop" class="content-block" action="/org/project/drop" method="post" enctype="multipart/form-data" >
                         <div class="input-header">
                             Drop a collection
                         </div>
