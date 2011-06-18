@@ -1,7 +1,11 @@
-from google.appengine.ext import db
-import os
-from aeoid import users
 import md5
+import os
+import re
+import md5
+
+from google.appengine.ext import db
+
+from aeoid import users
 
 class LoginRecord(db.Model):
     user = users.UserProperty(auto_current_user_add=True, required=True)
@@ -30,6 +34,7 @@ class UserModel(db.Model):
         else:
             return None
 
+
 class UserBadge(db.Model):
     #parent = db.Badge
     project = db.StringProperty() #key.str of Project that granted the badge
@@ -43,8 +48,20 @@ class Collection(db.Model):
     has_badges = db.BooleanProperty(default=True)
     has_ranks = db.BooleanProperty(default=False)
     has_points = db.BooleanProperty(default=False)
-    projects = db.ListProperty(db.Key)
+    projects = db.ListProperty(db.Key) # Projects that own this collection
+    projects_joined = db.ListProperty(db.Key) # Projects that have joined this collection
+    projects_following = db.ListProperty(db.Key) # Projects that are following this collection
     #badges = RefProp from Badge
+
+    @classmethod
+    def getkeyname(cls, title):
+        """Returns key_name from title."""
+        return re.sub(r'[^a-zA-Z0-9-]', '_', title.strip().lower())
+
+    @classmethod
+    def fromtitle(cls, title):
+        """Returns a Collection entity for the given title or None."""
+        return Collection.get_by_key_name(cls.getkeyname(title))
 
 class Badge(db.Model):
     #key_name = title.strip().lower().replace(' ','_')
@@ -61,9 +78,15 @@ class Project(db.Model):
     url = db.LinkProperty()
     about = db.TextProperty()
     icon = db.StringProperty()
-    collections = db.ListProperty(db.Key)
+    collections = db.ListProperty(db.Key) # Collections owned by this project
+    collections_following = db.ListProperty(db.Key) # Collections this project are following
+    collections_joined = db.ListProperty(db.Key) # Collections this project has joined
     admins = db.ListProperty(db.Key)
     joinDate = db.DateTimeProperty()
     secret = db.StringProperty()
     verified = db.BooleanProperty(default=False)
-
+    
+    @classmethod
+    def fromname(cls, name):
+        """Returns a Project entity for the given project name of None."""
+        return Project.get_by_key_name(name.strip().lower())
