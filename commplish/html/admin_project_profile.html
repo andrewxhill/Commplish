@@ -202,24 +202,25 @@
                       <input type="submit" name="action" value="send request" class="button join" />
                     </form>
                     
-                    
-                    <form id="drop" class="content-block" action="/org/project/drop" method="post" enctype="multipart/form-data" >
-                        <div class="input-header">
-                            Drop a collection
-                        </div>
-                        <div class="input-overview">
-                            Droping a collection cannot be undone. If you are the sole-administrator of the collection, it will be gone. Users 
-                            will keep their badges unless they delete them. If you are not the sole-administrator, you will have to request to Join 
+                    <!-- Form for dropping a collection. -->
+                    <form id="drop" class="content-block" action="/org/project/drop-collection" method="post" enctype="multipart/form-data" >
+                      <div class="input-header">
+                        Drop a collection
+                      </div>
+                      <div class="input-overview">
+                        Droping a collection cannot be undone. If you are the sole-administrator of the collection, it will be gone. Users 
+                        will keep their badges unless they delete them. If you are not the sole-administrator, you will have to request to Join 
                             the collection if you decide to use it again. 
+                      </div>
+                      <div class="input-row">
+                        <label>Collection ID</label>
+                        <div class="input-column">
+                          <input class="project-id" type="hidden" name="project-id" value=""/>
+                          <input type="text" name="collection-id" class="full drop-collection-id"/>
+                          <div class="description">A collection's ID can be found in the url of its profile page.</div>
                         </div>
-                        <div class="input-row">
-                            <label>Collection ID</label>
-                            <div class="input-column">
-                                <input type="text" name="collection-id" class="full drop-collection-id"/>
-                                <div class="description">A collection's ID can be found in the url of its profile page.</div>
-                            </div>
-                        </div>
-                        <input type="submit" name="action" value="drop" class="button drop" />
+                      </div>
+                      <input type="submit" name="action" value="drop" class="button drop" />
                     </form>
                     
                     

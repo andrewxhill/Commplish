@@ -341,6 +341,8 @@ class AdminProject(BaseHandler):
             self._handlecollection('join')
         elif action == 'follow-collection':
             self._handlecollection('follow')
+        elif action == 'drop-collection':
+            self._handlecollection('drop')
 
     def _handlecollection(self, action):
         """Handles a collection action by joining, following, or dropping a collection."""
@@ -387,7 +389,12 @@ class AdminProject(BaseHandler):
                 project.collections_following.append(ckey)
                 project.put()
         elif action == 'drop':
-            pass # TODO
+            collection.projects_following.remove(pkey)
+            collection.projects_joined.remove(pkey)
+            collection.put()
+            project.collections_following.remove(ckey)
+            project.collections_joined.remove(ckey)
+            project.put()
 
         logging.info('Joined collection %s with project %s' % (cid, pid))    
         self.redirect('/admin/project/%s' % pid)    
