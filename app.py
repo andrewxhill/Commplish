@@ -334,6 +334,38 @@ class AdminProject(BaseHandler):
     def get(self,action):
         if action=='create':
             self._createproject()
+        elif action == 'adminadd':
+            self._adminadd()
+
+    def _adminadd(self):
+        """Adds an admin user to a project."""
+        pid = self.request.get('pid', None) # Project id
+        uid = self.request.get('admin-user-id', None) # User id
+        if not pid or not uid:
+            logging.error('Unable to connect uid %s with pid %s' % (uid, pid))
+            self.redirect('/home')
+            return
+        
+        # Gets the Project entity for pid and redirects if None:
+        project = Project.get_by_key_name(pid.strip().lower())
+        if not project:
+            logging.error('Invalid project id ' + pid)
+            self.redirect('/home')
+            return
+
+        # Gets the UserModel entity for uid and redirects if None:
+        usermodel = UserModel.fromemail(uid)
+        if not usermodel:
+            logging.error('Invalid user id ' + uid)
+            self.redirect('/home')
+            return
+        
+        # Connects the user and the project:
+        usermodel.projects.append(project.key())
+        project.admins.append(usermodel.key())
+
+        logging.info('Connected uid %s to pid %s' % (uid, pid))    
+        self.redirect('/admin/project/%s' % pid)    
 
     def _checkname(self, name):
         pk = db.get(db.Key.from_path('Project',name.strip().lower()))
