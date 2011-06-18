@@ -427,7 +427,7 @@ class AdminCollection(BaseHandler):
             self._editbadge()
 
     def _checktitle(self, collection, title):
-        co = db.get(db.Key.from_path('Collection',collection, 'Badge',title))
+        co = db.get(db.Key.from_path('Collection', collection, 'Badge', title))
         return True if co is None else False
 
     def _editbadge(self):
@@ -505,8 +505,10 @@ class AdminCollection(BaseHandler):
         title = self.request.get('collection-title', None)
         desc = self.request.get('collection-description', None)
         proj = self.request.get('project-identifier', None)
-
-        if self._checktitle(title) and self._hasprojectauthority(proj):
+        
+        # FIXME: _checktitle() takes collection and title params so this call is invalid: 
+        # if self._checktitle(title) and self._hasprojectauthority(proj):        
+        if self._hasprojectauthority(proj):
 
             proj_key = db.Key.from_path('Project', proj.strip().lower())
 
