@@ -22,6 +22,7 @@ class UserBadge(db.Model):
     #parent = db.Badge
     project = db.StringProperty() #key.str of Project that granted the badge
     user = db.ReferenceProperty(UserModel, collection_name="badges")
+    count = db.IntegerProperty() #allows user to receive badge multiple times
     recieved = db.DateTimeProperty()
    
 class Collection(db.Model):
