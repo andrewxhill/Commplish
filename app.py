@@ -77,6 +77,14 @@ class BaseHandler(webapp.RequestHandler):
             return True
         else:
             return False
+            
+    def _hascollectionauthority(self,cid):
+        col = Collection.get_by_key_name(cid)
+        a = False
+        for p in self.user.admins:
+            if p in col.projects:
+                a = True
+        return a
         
 class SiteHome(webapp.RequestHandler):
     def get(self):
@@ -277,7 +285,7 @@ class LoadFakeData(BaseHandler):
             db.put([usr, bds])
             db.put(ubds)
    
-class CreateNewUser(BaseHandler):
+class AdminUser(BaseHandler):
     def __init__(self):
         self.user = None
         self.sendurl = '/home'
@@ -315,8 +323,7 @@ class CreateNewUser(BaseHandler):
             
         self.redirect(self.sendurl)
             
-
-class CreateNewProject(BaseHandler):
+class AdminProject(BaseHandler):
     def __init__(self):
         self.user = None
         self.sendurl = '/project'
@@ -405,19 +412,87 @@ class CreateNewProject(BaseHandler):
             
         self.redirect('/')
         
-
-class CreateNewCollection(BaseHandler):       
+class AdminCollection(BaseHandler):       
     def post(self,action):
         self.get(action)
     
     def get(self,action):
+        self.update=False
         if action=='create':
             self._createcollection()
+        if action=='add':
+            self._editbadge()
+        if action=='modify':
+            self.update=True
+            self._editbadge()
             
-    def _checktitle(self, title):
-        title = re.sub(r'[^a-zA-Z0-9-]', '_', title.strip().lower())
-        co = Collection.get_by_key_name(title)
+    def _checktitle(self, collection, title):
+        co = db.get(db.Key.from_path('Collection',collection, 'Badge',title))
         return True if co is None else False
+    
+    def _editbadge(self):
+        try:
+            self.user = UserModel.all().filter('md5 = ', self.usermd5).fetch(1)[0]
+        except:
+            self.user = None
+            
+        if not self.user:
+            self.redirect('/home')
+            return
+        
+        title = self.request.get('badge-title', None)
+        desc = self.request.get('badge-description', None)
+        
+        coll = self.request.get('collection-identifier', None)
+        icon = self.request.get('badge-icon')
+        
+        coll_key = re.sub(r'[^a-zA-Z0-9-]', '_', coll.strip().lower())
+        bkn = re.sub(r'[^a-zA-Z0-9-]', '_', title.strip().lower())
+        
+        if self.request.get('action', None) == "cancel":
+            self.redirect('/admin/collection/%s' % coll_key)
+            return
+            
+        if not self.update:
+            if not self._checktitle(coll_key, bkn):
+                rurl = "/admin/collection/%s" % bkn
+                self.redirect(rurl)
+                return
+        if self._hascollectionauthority(coll_key):
+            logging.error('hi')
+            logging.error('hi')
+            logging.error('hi')
+            logging.error('hi')
+            logging.error('hi')
+            logging.error('hi')
+            if self.update:
+                bg = db.get(db.Key.from_path('Collection',coll_key,'Badge',bkn))
+                logging.error(bg)
+                logging.error(bg.title)
+            else:
+                bg = Badge(
+                        parent = db.Key.from_path('Collection',coll_key),
+                        key_name = bkn,
+                        title = title,
+                        collection = db.Key.from_path('Collection',coll_key),
+                        )
+                
+            if desc and desc.strip() != "":
+                bg.about = desc
+                
+            if icon:
+                img = files.blobstore.create(mime_type='img/png')
+                with files.open(img, 'a') as f:
+                    f.write(icon)
+                files.finalize(img)
+                
+                icon = str(files.blobstore.get_blob_key(img))
+                bg.icon = str(icon)
+            
+            db.put(bg)
+            
+        self.redirect('/admin/collection/%s' % coll_key)
+        return 
         
     def _createcollection(self):
         if self.request.get('action', None) == "cancel":
@@ -430,11 +505,6 @@ class CreateNewCollection(BaseHandler):
             self.user = None
             
         if not self.user:
-            logging.error('bad md5')
-            logging.error('bad md5')
-            logging.error('bad md5')
-            logging.error('bad md5')
-            logging.error('bad md5')
             self.redirect('/home')
             return
         
@@ -459,11 +529,11 @@ class CreateNewCollection(BaseHandler):
             p.collections.append(col.key())
             db.put(p)
             
-            rurl = "/collections/%s" % kn
+            rurl = "/admin/collection/%s" % kn
             self.redirect(rurl)
             return
             
-        self.redirect('/project/mol')
+        self.redirect('/project/%s' % proj.strip().lower())
             
 class CollectionProfile(BaseHandler):
     def post(self,cid):
@@ -502,10 +572,10 @@ application = webapp.WSGIApplication([('/', SiteHome),
                                       ('/project/([^/]+)', ProjectProfile),
                                       ('/admin/project/([^/]+)', ProjectProfileAdmin),
                                       ('/admin/collection/([^/]+)', CollectionProfileAdmin),
-                                      ('/org/user/([^/]+)', CreateNewUser),
-                                      ('/org/project/([^/]+)', CreateNewProject),
-                                      ('/org/collection/([^/]+)', CreateNewCollection),
-                                      ('/new', CreateNewProject),
+                                      ('/org/user/([^/]+)', AdminUser),
+                                      ('/org/project/([^/]+)', AdminProject),
+                                      ('/org/collection/([^/]+)', AdminCollection),
+                                      #('/new', AdminProject),
                                       #('/new/([^/]+)', CreateNewProject),
                                       
                                       ('/give', GiveFakeBadges),

@@ -39,7 +39,7 @@
                     var t = $(p).children('.title').text();
                     var a = $(p).children('.about').text();
                     $('#block #modify .input-header').text(t + ' badge details');
-                    $('#block #modify .badge-identifier').val(t);
+                    $('#block #modify .badge-title').val(t);
                     $('#block #modify .badge-description').text(a);
                     $('#block').children('.content-block').removeClass('selected');
                     $('#block').find('#modify').addClass('selected');
@@ -157,8 +157,7 @@
                             </div>
                         </div>
                         <input type="hidden" name="collection-identifier" class="collection-identifier" value="" />
-                        <input type="hidden" name="badge-identifier" class="badge-identifier" value="new-commplish-badge" />
-                        <button class="button cancel">cancel</button>
+                        <input type="submit" name="action" value="cancel" class="button cancel" />
                         <input type="submit" name="action" value="submit" class="button submit" />
                             
                     </form>
@@ -187,8 +186,8 @@
                             </div>
                         </div>
                         <input type="hidden" name="collection-identifier" class="collection-identifier" value="" />
-                        <input type="hidden" name="badge-identifier" class="badge-identifier" value="" />
-                        <button class="button cancel">cancel</button>
+                        <input type="hidden" name="badge-title" class="badge-title" value="" />
+                        <input type="submit" name="action" value="cancel" class="button cancel" />
                         <input type="submit" name="action" value="submit" class="button submit" />
                             
                     </form>
