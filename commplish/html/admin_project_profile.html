@@ -14,6 +14,7 @@
             var cl;
             
             $('#block').find('.project-identifier').val(project);
+            $('#pid').val(project)
             
             $('#profile .menu a').click(function(){
                 $('#profile .menu').children('a').removeClass('selected');
@@ -163,18 +164,21 @@
                         <input type="submit" name="action" value="follow" class="button follow" />
                     </form>
                 
-                    <form id="admins" class="content-block" action="/org/project/follow" method="post" enctype="multipart/form-data" >
-                        <div class="input-header">
-                            Add a new admin user to this project
+
+                    <!-- Form for adding an admin to a project. -->
+                    <form id="admins" class="content-block" action="/org/project/adminadd" method="post" enctype="multipart/form-data" >
+                      <div class="input-header">
+                        Add a new admin user to this project
+                      </div>
+                      <div class="input-row">
+                        <label>User ID</label>
+                        <div class="input-column">
+                          <input id="pid" type="hidden" name="pid" value=""/>
+                          <input type="text" name="admin-user-id" class="full admin-user-id"/>
+                          <div class="description">An admin can access everything on this page, add new Collections to the project etc.</div>
                         </div>
-                        <div class="input-row">
-                            <label>User ID</label>
-                            <div class="input-column">
-                                <input type="text" name="admin-user-id" class="full admin-user-id"/>
-                                <div class="description">An admin can access everything on this page, add new Collections to the project etc.</div>
-                            </div>
-                        </div>
-                        <input type="submit" name="action" value="follow" class="button follow" />
+                      </div>
+                      <input type="submit" name="action" value="Add admin" class="button follow" />
                     </form>
                 
                 
