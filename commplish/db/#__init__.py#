@@ -74,6 +74,7 @@ class Badge(db.Model):
     collection = db.ReferenceProperty(Collection, collection_name="badges")
     icon = db.StringProperty()
 
+
 class Project(db.Model):
     #key_name = name.lower()
     fullName = db.TextProperty()

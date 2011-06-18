@@ -2,13 +2,9 @@
 Copyright (C)  Andrew Hill
 """
 from __future__ import with_statement
-
-# Use Django 1.2.
-#from google.appengine.dist import use_library
-#use_library('django', '1.2')
-
 import cgi
 import logging
+from google.appengine.api import mail
 from google.appengine.ext import db
 from google.appengine.ext import webapp
 from google.appengine.ext.webapp import util
@@ -527,6 +523,85 @@ class AdminCollection(BaseHandler):
         if action=='modify':
             self.update=True
             self._editbadge()
+        if action == 'invite':
+            self._invite()
+        if action == 'accept-invite':
+            self._acceptinvite()
+            
+    def _acceptinvite(self):
+        pid = self.request.get('pid', None)
+        cid = self.request.get('cid', None)
+        token = self.request.get('token', None)
+        if not pid or not cid or not token:
+            logging.error('Unable to accept invitation')
+            self.response.out.write('Sorry, invalid request parameters')
+            return
+
+        project = Project.fromname(pid)
+        adminuser = UserModel.frommd5(token)
+        collection = Collection.fromtitle(cid)
+        if not project or not adminuser or not collection:
+            logging.error('Unable to accept invitation')
+            self.response.out.write('Sorry, invalid request state')
+            return
+
+        if adminuser.key() not in project.admins:
+            logging.error('Unable to accept invitation')
+            self.response.out.write('Sorry, invalid request admin')
+            return
+        
+        ckey = collection.key()
+        if ckey not in project.collections:
+            project.collections.append(ckey)
+            project.put()
+        pkey = project.key()
+        if pkey not in collection.projects:
+            collection.projects.append(pkey)
+            collection.put()
+
+        self.response.out.write(
+            'Thanks %s! Your project %s is now connected to the %s badge collection!' % \
+                (adminuser.nickname, project.fullName, collection.title))
+                                    
+
+    def _invite(self):
+        """Invites a project admin to join a collection."""
+        pid = self.request.get('invited-project-id', None)
+        cid = self.request.get('collection-id', None)
+        if not pid or not cid:
+            logging.error('Unable to invite project to collection')
+            self.redirect('/home')
+            return
+        
+        project = Project.fromname(pid)
+        if not project:
+            logging.error('Project for %s does not exits' % pid)
+            self.redirect('/home')
+            return
+        
+        collection = Collection.fromtitle(cid)
+        if not collection:
+            logging.error('Collection for %s does not exist' % cid)
+            self.redirect('/home')
+            return
+                
+        # Note this just grabs the first admin but there may be many:
+        adminuser = db.get(project.admins[0])
+        token = adminuser.md5
+        user_address = adminuser.user.email()
+        params = urllib.urlencode({'cid':cid, 'pid': pid, 'token': token})
+        accept_url = '%s/org/collection/accept-invite?%s' % (self.request.host_url, params)
+        logging.info('Confirmation URL: %s' % accept_url)
+        sender_address = "Commplish App <invites@appid.appspotmail.com>"
+        subject = "You've been invited to join a badge collection!"
+        body = """
+To accept this invite please click this link:
+
+%s
+""" % accept_url
+
+        mail.send_mail(sender_address, user_address, subject, body)
+        
 
     def _titletaken(self, title):
         """Returns true if a Collection title is already taken."""
