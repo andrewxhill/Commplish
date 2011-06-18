@@ -18,11 +18,11 @@ class AdminSignin(webapp.RequestHandler):
 
 
 application = webapp.WSGIApplication([('/admin/signin', AdminSignin),
-                                     ],      
+                                     ],
                                      debug=False)
 
 def main():
-  util.run_wsgi_app(application)
+    util.run_wsgi_app(application)
 
 if __name__ == "__main__":
-  main()
+    main()

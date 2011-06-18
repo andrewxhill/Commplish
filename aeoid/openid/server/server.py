@@ -788,10 +788,10 @@ class CheckIDRequest(OpenIDRequest):
         if allow:
             mode = 'id_res'
         elif self.message.isOpenID1():
-             if self.immediate:
-                 mode = 'id_res'
-             else:
-                 mode = 'cancel'
+            if self.immediate:
+                mode = 'id_res'
+            else:
+                mode = 'cancel'
         else:
             if self.immediate:
                 mode = 'setup_needed'

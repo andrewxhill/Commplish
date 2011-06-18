@@ -1669,9 +1669,9 @@ class AuthRequest(object):
 
         @returns: str
         """
-        return oidutil.autoSubmitHTML(self.formMarkup(realm, 
+        return oidutil.autoSubmitHTML(self.formMarkup(realm,
                                                       return_to,
-                                                      immediate, 
+                                                      immediate,
                                                       form_tag_attrs))
 
     def shouldSendRedirect(self):

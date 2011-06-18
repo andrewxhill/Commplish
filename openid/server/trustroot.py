@@ -180,7 +180,7 @@ class TrustRoot(object):
         if self.wildcard:
             if len(tld) == 2 and len(host_parts[-2]) <= 3:
                 # It's a 2-letter tld with a short second to last segment
-                # so there needs to be more than two segments specified 
+                # so there needs to be more than two segments specified
                 # (e.g. *.co.uk is insane)
                 return len(host_parts) > 2
 
