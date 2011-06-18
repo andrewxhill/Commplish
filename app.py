@@ -335,12 +335,53 @@ class AdminProject(BaseHandler):
     def get(self,action):
         if action=='create':
             self._createproject()
-        elif action == 'adminadd':
-            self._adminadd()
+        elif action == 'add-admin':
+            self._addadmin()
+        elif action == 'join-collection':
+            self._joincollection()
 
-    def _adminadd(self):
+    def _joincollection(self):
+        """Joins a collection with a project."""
+        pid = self.request.get('project-id', None) # Project id
+        cid = self.request.get('collection-id', None) # Collection id
+        if not pid or not cid:
+            logging.error('Unable to join collection %s to project %s' % (cid, pid))
+            self.redirect('/home')
+            return
+
+        usermodel = UserModel.fromemail(users.get_current_user().email())
+        # TODO: Verify that usermodel is admin of project?
+        
+        # Gets the Project entity for pid and redirects if None:
+        project = Project.fromname(pid)
+        if not project:
+            logging.error('Invalid project id ' + pid)
+            self.redirect('/home')
+            return
+
+        # Gets the Collection entity for cid and redirects if None:
+        collection = Collection.fromtitle(cid)
+        if not collection:
+            logging.error('Invalid collection %s' % cid)
+            self.redirect('/home')
+            return
+        
+        # Connects the collection and the project without introducing duplicates:
+        pkey = project.key()
+        if pkey not in collection.projects_joined:            
+            collection.projects_joined.append(pkey)        
+            collection.put()
+        ckey = collection.key()
+        if ckey not in project.collections_joined:
+            project.collections_joined.append(ckey)
+            project.put()
+
+        logging.info('Joined collection %s with project %s' % (cid, pid))    
+        self.redirect('/admin/project/%s' % pid)    
+
+    def _addadmin(self):
         """Adds an admin user to a project."""
-        pid = self.request.get('pid', None) # Project id
+        pid = self.request.get('project-id', None) # Project id
         uid = self.request.get('admin-user-id', None) # User id
         if not pid or not uid:
             logging.error('Unable to connect uid %s with pid %s' % (uid, pid))
@@ -348,7 +389,7 @@ class AdminProject(BaseHandler):
             return
         
         # Gets the Project entity for pid and redirects if None:
-        project = Project.get_by_key_name(pid.strip().lower())
+        project = Project.fromname(pid)
         if not project:
             logging.error('Invalid project id ' + pid)
             self.redirect('/home')
