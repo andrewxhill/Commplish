@@ -338,10 +338,12 @@ class AdminProject(BaseHandler):
         elif action == 'add-admin':
             self._addadmin()
         elif action == 'join-collection':
-            self._joincollection()
+            self._handlecollection('join')
+        elif action == 'follow-collection':
+            self._handlecollection('follow')
 
-    def _joincollection(self):
-        """Joins a collection with a project."""
+    def _handlecollection(self, action):
+        """Handles a collection action by joining, following, or dropping a collection."""
         pid = self.request.get('project-id', None) # Project id
         cid = self.request.get('collection-id', None) # Collection id
         if not pid or not cid:
@@ -366,15 +368,26 @@ class AdminProject(BaseHandler):
             self.redirect('/home')
             return
         
-        # Connects the collection and the project without introducing duplicates:
         pkey = project.key()
-        if pkey not in collection.projects_joined:            
-            collection.projects_joined.append(pkey)        
-            collection.put()
         ckey = collection.key()
-        if ckey not in project.collections_joined:
-            project.collections_joined.append(ckey)
-            project.put()
+
+        # Updates Collection and Project entities based on action:
+        if action == 'join':
+            if pkey not in collection.projects_joined:            
+                collection.projects_joined.append(pkey)        
+                collection.put()
+            if ckey not in project.collections_joined:
+                project.collections_joined.append(ckey)
+                project.put()
+        elif action == 'follow':
+            if pkey not in collection.projects_following:
+                collection.projects_following.append(pkey)
+                collection.put()
+            if ckey not in project.collections_following:
+                project.collections_following.append(ckey)
+                project.put()
+        elif action == 'drop':
+            pass # TODO
 
         logging.info('Joined collection %s with project %s' % (cid, pid))    
         self.redirect('/admin/project/%s' % pid)    
