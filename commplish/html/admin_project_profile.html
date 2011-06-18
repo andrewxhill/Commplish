@@ -14,7 +14,7 @@
             var cl;
             
             $('#block').find('.project-identifier').val(project);
-            $('#pid').val(project)
+            $('.project-id').val(project)
             
             $('#profile .menu a').click(function(){
                 $('#profile .menu').children('a').removeClass('selected');
@@ -166,38 +166,39 @@
                 
 
                     <!-- Form for adding an admin to a project. -->
-                    <form id="admins" class="content-block" action="/org/project/adminadd" method="post" enctype="multipart/form-data" >
+                    <form id="admins" class="content-block" action="/org/project/add-admin" method="post" enctype="multipart/form-data" >
                       <div class="input-header">
                         Add a new admin user to this project
                       </div>
                       <div class="input-row">
                         <label>User ID</label>
                         <div class="input-column">
-                          <input id="pid" type="hidden" name="pid" value=""/>
+                          <input class="project-id" type="hidden" name="project-id" value=""/>
                           <input type="text" name="admin-user-id" class="full admin-user-id"/>
                           <div class="description">An admin can access everything on this page, add new Collections to the project etc.</div>
                         </div>
                       </div>
                       <input type="submit" name="action" value="Add admin" class="button follow" />
                     </form>
-                
-                
-                    <form id="join" class="content-block" action="/org/project/join" method="post" enctype="multipart/form-data" >
-                        <div class="input-header">
-                            Join a collection
+
+                    <!-- Form for joining a collection. -->                                
+                    <form id="join" class="content-block" action="/org/project/join-collection" method="post" enctype="multipart/form-data" >
+                      <div class="input-header">
+                        Join a collection
+                      </div>
+                      <div class="input-overview">
+                        Joining a collection will allow you to grant badges from that collection even though you didn't start it. Join 
+                        requests must be approved by an admin to the collection. 
+                      </div>
+                      <div class="input-row">
+                        <label>Collection ID</label>
+                        <div class="input-column">
+                          <input class="project-id" type="hidden" name="project-id" value=""/>
+                          <input type="text" name="collection-id" class="full follow-collection-id"/>
+                          <div class="description">A collection's ID can be found in the url of its profile page.</div>
                         </div>
-                        <div class="input-overview">
-                            Joining a collection will allow you to grant badges from that collection even though you didn't start it. Join 
-                            requests must be approved by an admin to the collection. 
-                        </div>
-                        <div class="input-row">
-                            <label>Collection ID</label>
-                            <div class="input-column">
-                                <input type="text" name="project-full-name" class="full follow-collection-id"/>
-                                <div class="description">A collection's ID can be found in the url of its profile page.</div>
-                            </div>
-                        </div>
-                        <input type="submit" name="action" value="send request" class="button join" />
+                      </div>
+                      <input type="submit" name="action" value="send request" class="button join" />
                     </form>
                     
                     
