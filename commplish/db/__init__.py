@@ -1,7 +1,7 @@
 from google.appengine.ext import db
 import os
 from aeoid import users
-
+import md5
 
 class LoginRecord(db.Model):
     user = users.UserProperty(auto_current_user_add=True, required=True)
@@ -15,8 +15,21 @@ class UserModel(db.Model):
     about = db.TextProperty()
     joinDate = db.DateTimeProperty()
     projects = db.ListProperty(db.Key)
-    admins = db.ListProperty(db.Key)
+    admins = db.ListProperty(db.Key) # Project keys
     #badges = RefProp from UserBadge
+
+    @classmethod
+    def fromemail(cls, email):
+        """Returns a UserModel for the given email address or None."""
+        m = md5.new()
+        m.update(email.strip().lower())
+        usermd5 = str(m.hexdigest())
+        results = UserModel.all().filter('md5 = ', usermd5).fetch(1)
+        if results and len(results) == 1:
+            return results[0]
+        else:
+            return None
+
 
 class UserBadge(db.Model):
     #parent = db.Badge
