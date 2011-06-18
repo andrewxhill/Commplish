@@ -145,23 +145,24 @@
                     </form>
                     
                     
-                
-                    <form id="follow" class="content-block" action="/org/project/follow" method="post" enctype="multipart/form-data" >
-                        <div class="input-header">
-                            Follow a collection
+                    <!-- Form for following a collection. -->
+                    <form id="follow" class="content-block" action="/org/project/follow-collection" method="post" enctype="multipart/form-data" >
+                      <div class="input-header">
+                        Follow a collection
+                      </div>
+                      <div class="input-overview">
+                        By Following a new collection, badges awarded in that collection to any of your users will be reported via user profiles. 
+                        This allows you to quickly see, and honor, a users accomplishments in another Project. 
+                      </div>
+                      <div class="input-row">
+                        <label>Collection ID</label>
+                        <div class="input-column">
+                          <input class="project-id" type="hidden" name="project-id" value=""/>
+                          <input type="text" name="collection-id" class="full follow-collection-id"/>
+                          <div class="description">A collection's ID can be found in the url of its profile page.</div>
                         </div>
-                        <div class="input-overview">
-                            By Following a new collection, the badges awarded in that collection to any of your users will be reported in your user profile requests. 
-                            This allows you to quickly see, and honor, a users accomplishments in another Project. 
-                        </div>
-                        <div class="input-row">
-                            <label>Collection ID</label>
-                            <div class="input-column">
-                                <input type="text" name="project-full-name" class="full follow-collection-id"/>
-                                <div class="description">A collection's ID can be found in the url of its profile page.</div>
-                            </div>
-                        </div>
-                        <input type="submit" name="action" value="follow" class="button follow" />
+                      </div>
+                      <input type="submit" name="action" value="follow" class="button follow" />
                     </form>
                 
 
