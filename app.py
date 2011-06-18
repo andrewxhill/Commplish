@@ -4,8 +4,9 @@ Copyright (C)  Andrew Hill
 from __future__ import with_statement
 
 # Use Django 1.2.
-from google.appengine.dist import use_library
-use_library('django', '1.2')
+#from google.appengine.dist import use_library
+#use_library('django', '1.2')
+
 import cgi
 import logging
 from google.appengine.ext import db
@@ -360,9 +361,15 @@ class AdminProject(BaseHandler):
             self.redirect('/home')
             return
         
-        # Connects the user and the project:
-        usermodel.projects.append(project.key())
-        project.admins.append(usermodel.key())
+        # Connects the user and the project without introducing duplicates:
+        pkey = project.key()
+        if pkey not in usermodel.projects:            
+            usermodel.projects.append(pkey)        
+            usermodel.put()
+        ukey = usermodel.key()
+        if ukey not in project.admins:
+            project.admins.append(ukey)
+            project.put()
 
         logging.info('Connected uid %s to pid %s' % (uid, pid))    
         self.redirect('/admin/project/%s' % pid)    

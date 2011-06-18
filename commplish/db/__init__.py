@@ -30,7 +30,6 @@ class UserModel(db.Model):
         else:
             return None
 
-
 class UserBadge(db.Model):
     #parent = db.Badge
     project = db.StringProperty() #key.str of Project that granted the badge
@@ -67,3 +66,4 @@ class Project(db.Model):
     joinDate = db.DateTimeProperty()
     secret = db.StringProperty()
     verified = db.BooleanProperty(default=False)
+

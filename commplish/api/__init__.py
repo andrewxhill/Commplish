@@ -1,8 +1,8 @@
 """
 Copyright (C)  2011 Aaron Steele, Andrew Hill, Sander Pick
 """
-from google.appengine.dist import use_library
-use_library('django', '1.2')
+#from google.appengine.dist import use_library
+#use_library('django', '1.2')
 import cgi
 import logging
 from google.appengine.ext import db
