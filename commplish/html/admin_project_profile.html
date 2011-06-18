@@ -68,6 +68,7 @@
                         <a class="drop">Drop a collection</a>
                         <a class="details">Edit Profile</a>
                         <a class="change">Change icon</a>
+                        <a class="admins">Add admins</a>
                         <a class="key">API Key</a>
                     </div>
                 </div>
@@ -157,6 +158,20 @@
                             <div class="input-column">
                                 <input type="text" name="project-full-name" class="full follow-collection-id"/>
                                 <div class="description">A collection's ID can be found in the url of its profile page.</div>
+                            </div>
+                        </div>
+                        <input type="submit" name="action" value="follow" class="button follow" />
+                    </form>
+                
+                    <form id="admins" class="content-block" action="/org/project/follow" method="post" enctype="multipart/form-data" >
+                        <div class="input-header">
+                            Add a new admin user to this project
+                        </div>
+                        <div class="input-row">
+                            <label>User ID</label>
+                            <div class="input-column">
+                                <input type="text" name="admin-user-id" class="full admin-user-id"/>
+                                <div class="description">An admin can access everything on this page, add new Collections to the project etc.</div>
                             </div>
                         </div>
                         <input type="submit" name="action" value="follow" class="button follow" />

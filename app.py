@@ -459,12 +459,6 @@ class AdminCollection(BaseHandler):
                 self.redirect(rurl)
                 return
         if self._hascollectionauthority(coll_key):
-            logging.error('hi')
-            logging.error('hi')
-            logging.error('hi')
-            logging.error('hi')
-            logging.error('hi')
-            logging.error('hi')
             if self.update:
                 bg = db.get(db.Key.from_path('Collection',coll_key,'Badge',bkn))
                 logging.error(bg)
