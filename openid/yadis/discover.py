@@ -132,4 +132,3 @@ def whereIsYadis(resp):
                 pass
 
         return yadis_loc
-

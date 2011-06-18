@@ -18,20 +18,20 @@ except ImportError:
 
 class MemcachedNamespaceManager(NamespaceManager):
     clients = SyncDict()
-    
+
     def __init__(self, namespace, url=None, data_dir=None, lock_dir=None, **params):
         NamespaceManager.__init__(self, namespace)
-       
+
         if not url:
-            raise MissingCacheParameter("url is required") 
-        
+            raise MissingCacheParameter("url is required")
+
         if lock_dir:
             self.lock_dir = lock_dir
         elif data_dir:
             self.lock_dir = data_dir + "/container_mcd_lock"
         if self.lock_dir:
-            verify_directory(self.lock_dir)            
-        
+            verify_directory(self.lock_dir)
+
         self.mc = MemcachedNamespaceManager.clients.get(url, memcache.Client, url.split(';'))
 
     def get_creation_lock(self, key):
@@ -59,13 +59,13 @@ class MemcachedNamespaceManager(NamespaceManager):
 
     def __setitem__(self, key, value):
         self.set_value(key, value)
-        
+
     def __delitem__(self, key):
         self.mc.delete(self._format_key(key))
 
     def do_remove(self):
         self.mc.flush_all()
-    
+
     def keys(self):
         raise NotImplementedError("Memcache caching does not support iteration of all cache keys")
 

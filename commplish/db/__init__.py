@@ -6,7 +6,7 @@ from aeoid import users
 class LoginRecord(db.Model):
     user = users.UserProperty(auto_current_user_add=True, required=True)
     timestamp = db.DateTimeProperty(auto_now_add=True)
-    
+
 class UserModel(db.Model):
     #key_name = nickname
     nickname = db.StringProperty() #Must be distinct
@@ -23,7 +23,7 @@ class UserBadge(db.Model):
     project = db.StringProperty() #key.str of Project that granted the badge
     user = db.ReferenceProperty(UserModel, collection_name="badges")
     recieved = db.DateTimeProperty()
-   
+
 class Collection(db.Model):
     #key_name = title.strip().lower().replace(' ','_')
     title = db.StringProperty()
@@ -33,7 +33,7 @@ class Collection(db.Model):
     has_points = db.BooleanProperty(default=False)
     projects = db.ListProperty(db.Key)
     #badges = RefProp from Badge
-    
+
 class Badge(db.Model):
     #key_name = title.strip().lower().replace(' ','_')
     #parent = Collection

@@ -38,17 +38,17 @@ class UrlTest(webapp.RequestHandler):
             pk = Project.all(keys_only=True).filter('url = ', urls[0]).fetch(1)
             if len(pk) == 0:
                 pk = Project.all(keys_only=True).filter('url = ', urls[1]).fetch(1)
-                
-                
+
+
             if len(pk) == 0:
                 out = {'available': True}
-            else: 
+            else:
                 out = {'available': False}
             self.response.out.write(
                     simplejson.dumps(out)
                 )
         return
-        
+
 class NameTest(webapp.RequestHandler):
     def get(self,model,name):
         self.post(model,name)
@@ -61,7 +61,7 @@ class NameTest(webapp.RequestHandler):
             name = urllib.unquote(name)
             name = re.sub(r'[^a-zA-Z0-9-]', '_', name.strip().lower())
             pk = db.get(db.Key.from_path('Collection',name))
-            
+
         if pk:
             out = {'available': False}
         else:
@@ -69,21 +69,21 @@ class NameTest(webapp.RequestHandler):
         self.response.out.write(
                 simplejson.dumps(out)
             )
-        
+
 class ProjectService(webapp.RequestHandler):
     def get(self,pid):
         self.post(pid)
     def post(self,pid):
         pk = db.Key.from_path('Project',pid.strip().lower())
         p = db.get(pk)
-        
+
         sz = self.request.get('s', 64)
-        
+
         try:
             assert int(sz) <= 256
         except:
             sz = 64
-    
+
         age = datetime.datetime.now() - p.joinDate
         ageunit = 'days' if int(age.days) > 1 else 'day'
         memberct = len(UserModel.all(keys_only=True).filter('projects = ', pk).fetch(1000))
@@ -92,7 +92,7 @@ class ProjectService(webapp.RequestHandler):
             icon = images.get_serving_url(p.icon, size=256)
         else:
             icon = None
-            
+
         out = {
                 "pid": pid,
                 "name": p.name,
@@ -122,11 +122,11 @@ class ProjectService(webapp.RequestHandler):
                         }
                     s['badges'].append(t)
                 out['collections'].append(s)
-                
+
         self.response.out.write(
             simplejson.dumps(out)
         )
-         
+
 class CollectionService(webapp.RequestHandler):
     def get(self,cid):
         self.post(cid)
@@ -135,7 +135,7 @@ class CollectionService(webapp.RequestHandler):
         co = db.get(pk)
         if co:
             sz = self.request.get('s', 64)
-            
+
             try:
                 assert int(sz) <= 256
             except:
@@ -160,7 +160,7 @@ class CollectionService(webapp.RequestHandler):
         self.response.out.write(
             simplejson.dumps(out)
         )
-            
+
 class UserService(webapp.RequestHandler):
     def profilebymd5(self,usermd5):
         pass
@@ -175,7 +175,7 @@ class UserService(webapp.RequestHandler):
                 sz = 128
             age = datetime.datetime.now() - u.joinDate
             ageunit = 'days' if int(age.days) > 1 else 'day'
-            
+
             out = {
                     "uid": uid,
                     "nickname": u.nickname,
@@ -192,7 +192,7 @@ class UserService(webapp.RequestHandler):
                     {"name": tp.name,
                      "fullName": tp.fullName}
                     )
-                
+
             bg = {}
             for b in u.badges:
                 ba = b.parent()
@@ -204,14 +204,14 @@ class UserService(webapp.RequestHandler):
                         "projects": [] }
                     for p in ba.collection.projects:
                         bg[title]["projects"].append(db.get(p).name)
-                        
+
                 bg[title]["badges"].append({
                         "about": ba.about,
                         "icon": images.get_serving_url(ba.icon, size=int(sz)),
                         "title": ba.title })
             for b in bg.values():
                 out["collections"].append(b)
-                        
+
         self.response.out.write(
             simplejson.dumps(out)
         )
@@ -225,7 +225,7 @@ class UserService(webapp.RequestHandler):
         um = UserModel.all().filter('md5 = ',self.usermd5).fetch(1)
         if um:
             u = um[0]
-        
+
         if u is not None:
             sz = self.request.get('s', 128)
             try:
@@ -234,7 +234,7 @@ class UserService(webapp.RequestHandler):
                 sz = 128
             age = datetime.datetime.now() - u.joinDate
             ageunit = 'days' if int(age.days) > 1 else 'day'
-            
+
             out = {
                     "uid": u.nickname,
                     "nickname": u.nickname,
@@ -251,7 +251,7 @@ class UserService(webapp.RequestHandler):
                     {"name": tp.name,
                      "fullName": tp.fullName}
                     )
-                
+
             bg = {}
             for b in u.badges:
                 ba = b.parent()
@@ -263,14 +263,14 @@ class UserService(webapp.RequestHandler):
                         "projects": [] }
                     for p in ba.collection.projects:
                         bg[title]["projects"].append(db.get(p).name)
-                        
+
                 bg[title]["badges"].append({
                         "about": ba.about,
                         "icon": images.get_serving_url(ba.icon, size=int(sz)),
                         "title": ba.title })
             for b in bg.values():
                 out["collections"].append(b)
-                        
+
         self.response.out.write(
             simplejson.dumps(out)
         )
@@ -281,7 +281,7 @@ class UserService(webapp.RequestHandler):
             self.profilebyid(param)
         if action=="auth":
             self.profilebyauth()
-      
+
 application = webapp.WSGIApplication([
                                       ('/api/project/([^/]+)', ProjectService),
                                       ('/api/collection/([^/]+)', CollectionService),
@@ -289,12 +289,12 @@ application = webapp.WSGIApplication([
                                       ('/api/user/([^/]+)/([^/]+)', UserService),
                                       ('/api/available/([^/]+)/([^/]+)', NameTest),
                                       ('/api/url', UrlTest),
-                                     ],      
+                                     ],
                                      debug=False)
 application = middleware.AeoidMiddleware(application)
 
 def main():
-  util.run_wsgi_app(application)
+    util.run_wsgi_app(application)
 
 if __name__ == "__main__":
-  main()
+    main()

@@ -144,7 +144,7 @@ EXAMPLE_EXERCISES = {
                      },
         "tags": ["arms","triceps","extension",],
     },}
-    
+
 class UserProfile():
     def __init__(self):
         self.user = users.get_current_user()
@@ -178,35 +178,35 @@ class UserProfile():
             self.model.brief = db.Blob(pickle.dumps(out))
             self.model.put()
         return pickle.loads(str(self.model.brief))
-            
+
     def full(self):
         if self.model.full is None:
             pass
         return self.model.full
-        
+
 class UserInfo(webapp.RequestHandler):
-  def get(self):
-      self.post()
-  def post(self):
-    out = None
-    if users.get_current_user():
-        fullprofile = False if not self.request.params.get('profile', False) else True
-        self.response.headers['Content-Type'] = 'application/json'
-        out = UserProfile().brief()
-    else:
-        cont = self.request.params.get('continue', "/") 
-        out = {'login_url': users.create_login_url(cont)}
-    self.response.out.write(simplejson.dumps(out))
+    def get(self):
+        self.post()
+    def post(self):
+        out = None
+        if users.get_current_user():
+            fullprofile = False if not self.request.params.get('profile', False) else True
+            self.response.headers['Content-Type'] = 'application/json'
+            out = UserProfile().brief()
+        else:
+            cont = self.request.params.get('continue', "/")
+            out = {'login_url': users.create_login_url(cont)}
+        self.response.out.write(simplejson.dumps(out))
 
 class SiteActivity(webapp.RequestHandler):
     """given either /api/activity/posts or /api/activity/comments this
-    will give back a stream of the most recent submissions. Default 
+    will give back a stream of the most recent submissions. Default
     number returned in the array is 10."""
     def get(self,method):
         self.post(method)
     def post(self,method):
         out = []
-        n = self.request.params.get('length') 
+        n = self.request.params.get('length')
         try:
             n = int(n)
         except:
@@ -218,26 +218,26 @@ class SiteActivity(webapp.RequestHandler):
         elif method=="comments":
             out = [i for i in Comment.all().fetch(n)]
         self.response.out.write(simplejson.dumps(out))
-      
-      
+
+
 class AddNewPost(webapp.RequestHandler):
     """Accepts a new Exercise or Workout"""
     def post(self,type):
         if type=="exercise":
             pass
-            
-            
-      
-      
+
+
+
+
 application = webapp.WSGIApplication([('/api/user', UserInfo),
                                       ('/api/activity/([^/]+)', SiteActivity),
                                       ('/api/post/([^/]+)', AddNewPost),
-                                     ],      
+                                     ],
                                      debug=False)
 application = middleware.AeoidMiddleware(application)
 
 def main():
-  util.run_wsgi_app(application)
+    util.run_wsgi_app(application)
 
 if __name__ == "__main__":
-  main()
+    main()

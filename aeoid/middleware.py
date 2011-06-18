@@ -27,32 +27,32 @@ from aeoid import users
 
 
 class _MiddlewareImpl(object):
-  def __init__(self, application, debug=False):
-    self.application = application
-    self.oid_app = webapp.WSGIApplication(handlers.handler_map, debug=debug)
+    def __init__(self, application, debug=False):
+        self.application = application
+        self.oid_app = webapp.WSGIApplication(handlers.handler_map, debug=debug)
 
-  def __call__(self, environ, start_response):
-    session = environ['aeoid.beaker.session']
-    if 'aeoid.user' in session:
-      os.environ['aeoid.user'] = environ['aeoid.user'] = session['aeoid.user']
-    try:
-      if environ['PATH_INFO'].startswith(users.OPENID_PATH_PREFIX):
-        return self.oid_app(environ, start_response)
-      else:
-        return self.application(environ, start_response)
-    finally:
-      users._current_user = None
+    def __call__(self, environ, start_response):
+        session = environ['aeoid.beaker.session']
+        if 'aeoid.user' in session:
+            os.environ['aeoid.user'] = environ['aeoid.user'] = session['aeoid.user']
+        try:
+            if environ['PATH_INFO'].startswith(users.OPENID_PATH_PREFIX):
+                return self.oid_app(environ, start_response)
+            else:
+                return self.application(environ, start_response)
+        finally:
+            users._current_user = None
 
 
 def AeoidMiddleware(application, session_opts=None, debug=False):
-  """WSGI middleware that adds support for OpenID user authentication."""
+    """WSGI middleware that adds support for OpenID user authentication."""
 
-  beaker_opts = {
-      'session.type': 'ext:google',
-      'session.key': 'aeoid.beaker.session.id',
-  }
-  if session_opts:
-    beaker_opts.update(session_opts)
-  application = _MiddlewareImpl(application, debug)
-  application = SessionMiddleware(wrap_app=application, config=beaker_opts, environ_key='aeoid.beaker.session')
-  return application
+    beaker_opts = {
+        'session.type': 'ext:google',
+        'session.key': 'aeoid.beaker.session.id',
+    }
+    if session_opts:
+        beaker_opts.update(session_opts)
+    application = _MiddlewareImpl(application, debug)
+    application = SessionMiddleware(wrap_app=application, config=beaker_opts, environ_key='aeoid.beaker.session')
+    return application

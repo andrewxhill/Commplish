@@ -26,30 +26,30 @@ import uuid
 import re
 
 class AppsFederationHandler(webapp.RequestHandler):
-  """Handles openid login for federated Google Apps Marketplace apps."""
-  def get(self):
-    domain = self.request.get("domain")
-    if not domain:
-      self.redirect("/user/view")
-    else:
-      openid_url = "https://www.google.com/accounts/o8/site-xrds?hd=" + domain
-      self.redirect("%s?openid_url=%s" %
-                    (users.OPENID_LOGIN_PATH, urllib.quote(openid_url)))
+    """Handles openid login for federated Google Apps Marketplace apps."""
+    def get(self):
+        domain = self.request.get("domain")
+        if not domain:
+            self.redirect("/user/view")
+        else:
+            openid_url = "https://www.google.com/accounts/o8/site-xrds?hd=" + domain
+            self.redirect("%s?openid_url=%s" %
+                          (users.OPENID_LOGIN_PATH, urllib.quote(openid_url)))
 
 
 class LoginHandler(webapp.RequestHandler):
-  def get(self):
-    if users.get_current_user():
-      login = LoginRecord()
-      logging.warn(login.user)
-      login.put()
-    self.redirect('/home')
+    def get(self):
+        if users.get_current_user():
+            login = LoginRecord()
+            logging.warn(login.user)
+            login.put()
+        self.redirect('/home')
 
 class LogOut(webapp.RequestHandler):
-  def get(self):
-    if users.get_current_user():
-        self.redirect(users.create_logout_url('/'))
-        
+    def get(self):
+        if users.get_current_user():
+            self.redirect(users.create_logout_url('/'))
+
 class BaseHandler(webapp.RequestHandler):
     def __init__(self):
         self.user = users.get_current_user()
@@ -58,7 +58,7 @@ class BaseHandler(webapp.RequestHandler):
             m = md5.new()
             m.update(self.user.email().strip().lower())
             self.usermd5 = str(m.hexdigest())
-        
+
     def render_template(self, file, template_vals):
         path = os.path.join(os.path.dirname(__file__), 'commplish', 'templates', file )
         logging.error(path)
@@ -68,16 +68,16 @@ class BaseHandler(webapp.RequestHandler):
         self.response.out.write(open(path, 'r').read())
     def signup(self):
         self.push_html('user_signup.html')
-        
+
     def login(self, url):
         self.redirect(users.create_login_url(url))
-        
+
     def _hasprojectauthority(self,pid):
         if db.Key.from_path('Project', pid.strip().lower()) in self.user.admins:
             return True
         else:
             return False
-            
+
     def _hascollectionauthority(self,cid):
         col = Collection.get_by_key_name(cid)
         a = False
@@ -85,49 +85,49 @@ class BaseHandler(webapp.RequestHandler):
             if p in col.projects:
                 a = True
         return a
-        
+
 class SiteHome(webapp.RequestHandler):
     def get(self):
         self.redirect('/home')
-            
-class UserAdmin(BaseHandler):    
+
+class UserAdmin(BaseHandler):
     def profile(self):
         if self.user is None:
             self.login('/home')
-            return 
-            
+            return
+
         m = md5.new()
         m.update(self.user.email().strip().lower())
         self.usermd5 = str(m.hexdigest())
         um = UserModel.all(keys_only=True).filter('md5 = ',self.usermd5).fetch(1)
-        
+
         if len(um) == 0:
             self.signup()
             return
-                
+
         self.push_html('admin_user_profile.html')
-        
+
     def get(self):
         self.profile()
-            
+
 class UserProfile(BaseHandler):
     def get(self, name):
         self.push_html('public_user_profile.html')
-            
+
 class ProjectProfile(BaseHandler):
     def post(self,pid):
         self.get(pid)
-    
+
     def get(self,pid):
         if pid=="new":
             self.push_html('project_signup.html')
             return
         self.push_html('public_project_profile.html')
-       
+
 class ProjectProfileAdmin(BaseHandler):
     def post(self,pid):
         self.get(pid)
-    
+
     def get(self,pid):
         um = UserModel.all(keys_only=True).filter('md5 = ',self.usermd5).fetch(1)
         if len(um)==0:
@@ -156,22 +156,22 @@ class GiveFakeBadges(BaseHandler):
                 project = str(p),
                 user = u,
                 recieved = datetime.datetime.now(),
-        )     
+        )
         db.put(ub)
-        
+
 class LoadFakeData(BaseHandler):
     def get(self):
-        
+
         """Get the user info"""
         user = users.get_current_user()
-        
+
         """create the user's unique key"""
         m = md5.new()
         m.update(user.email().strip().lower())
         usermd5 = str(m.hexdigest())
-        
+
         usr = UserModel.all().filter('md5 = ',usermd5).fetch(1)[0]
-        
+
         """Create a user instance"""
         """
         usr = UserModel(
@@ -185,20 +185,20 @@ class LoadFakeData(BaseHandler):
                     admins = [] )
         """
         #db.put(usr)
-        
-        
+
+
         """get mol icon"""
         path = os.path.join(os.path.dirname(__file__), "io",'logo.png')
-        #img = open(path, 'r').read() 
-        
+        #img = open(path, 'r').read()
+
         shortname = "MOL"
-        
+
         img = files.blobstore.create(mime_type='img/png')
         with files.open(img, 'a') as f:
             f.write(open(path, 'r').read())
         files.finalize(img)
         icon_key = files.blobstore.get_blob_key(img)
-        
+
         proj = Project(
                     key_name = shortname.lower(),
                     fullName = "Map of Life",
@@ -210,11 +210,11 @@ class LoadFakeData(BaseHandler):
                     icon = str(icon_key),
                     joinDate = datetime.datetime.now(),
                     secret = str(uuid.uuid1()))
-        
+
         """add the project to the user"""
         usr.projects.append(proj.key())
         usr.admins.append(proj.key())
-        
+
         title = "Species cartographer"
         kn = re.sub(r'[^a-zA-Z0-9-]', '_', title.strip().lower())
         bds = Collection(
@@ -223,13 +223,13 @@ class LoadFakeData(BaseHandler):
                     about = "These badged are given to members who help us discover where species exist",
                     projects = []
                     )
-                    
+
         """add the collection to the project"""
         proj.collections.append(bds.key())
         db.put(proj)
-        
+
         bds.projects.append(proj.key())
-        
+
         bgs = []
         ubds = []
         titles = [
@@ -248,17 +248,17 @@ class LoadFakeData(BaseHandler):
                 'Added to project comments',
                 'Seen 20 or more days on the project',
                 'Active during 100 or more days on the project']
-                
+
         for i in range(10, 18):
             path = os.path.join(os.path.dirname(__file__), "io",str(i) + '.png')
-            #img = open(path, 'r').read() 
-            
+            #img = open(path, 'r').read()
+
             img = files.blobstore.create(mime_type='img/png')
             with files.open(img, 'a') as f:
                 f.write(open(path, 'r').read())
             files.finalize(img)
             icon_key = files.blobstore.get_blob_key(img)
-            
+
             ttl = titles.pop()
             bkn = re.sub(r'[^a-zA-Z0-9-]', '_', ttl.strip().lower())
             bg = Badge(
@@ -270,7 +270,7 @@ class LoadFakeData(BaseHandler):
                     icon = str(icon_key)
                     )
             db.put(bg)
-            
+
             """give some badges to myself"""
             if i in [11, 15, 16, 17]:
                 ubd = UserBadge(
@@ -278,39 +278,39 @@ class LoadFakeData(BaseHandler):
                         project = str(proj.key()),
                         user = usr,
                         recieved = datetime.datetime.now(),
-                )     
+                )
                 ubds.append(ubd)
-            
+
         if True:
             db.put([usr, bds])
             db.put(ubds)
-   
+
 class AdminUser(BaseHandler):
     def __init__(self):
         self.user = None
         self.sendurl = '/home'
-        
+
     def post(self,action):
         self.get(action)
-    
+
     def get(self,action):
         if action=='create':
             self._createuser()
-            
+
     def _createuser(self):
         if self.request.get('action', None) == "cancel":
             self.redirect('/')
             return
-            
+
         self.user = users.get_current_user()
-        
+
         nickname = self.request.get('nickname', None)
-        
+
         if self.user is not None and UserModel.get_by_key_name(nickname.strip().lower()) is None:
-            
+
             m = md5.new()
             m.update(self.user.email().strip().lower())
-            
+
             u = UserModel(
                     key_name = nickname.strip().lower(),
                     nickname = nickname,
@@ -320,25 +320,25 @@ class AdminUser(BaseHandler):
                     joinDate = datetime.datetime.now()
                     )
             db.put(u)
-            
+
         self.redirect(self.sendurl)
-            
+
 class AdminProject(BaseHandler):
     def __init__(self):
         self.user = None
         self.sendurl = '/project'
-        
+
     def post(self,action):
         self.get(action)
-    
+
     def get(self,action):
         if action=='create':
             self._createproject()
-            
+
     def _checkname(self, name):
         pk = db.get(db.Key.from_path('Project',name.strip().lower()))
         return True if pk is None else False
-        
+
     def _checkurl(self, url):
         if url.strip()=="":
             return False
@@ -349,30 +349,30 @@ class AdminProject(BaseHandler):
         if len(pk) == 0:
             pk = Project.all(keys_only=True).filter('url = ', urls[1]).fetch(1)
         return True if len(pk)==0 else False
-        
+
     def _validurl(self, url):
         url = url.lower().lstrip('http://')
         return "http://" + url
-        
+
     def _createproject(self):
         if self.request.get('action', None) == "cancel":
             self.redirect('/home')
             return
-            
+
         user = users.get_current_user()
         m = md5.new()
         m.update(user.email().strip().lower())
         usermd5 = str(m.hexdigest())
-        
+
         try:
             self.user = UserModel.all().filter('md5 = ', usermd5).fetch(1)[0]
         except:
             self.user = None
-            
+
         if not self.user:
             self.redirect('/')
             return
-        
+
         fullName = self.request.get('project-full-name', None)
         name = self.request.get('project-name', None)
         url = self.request.get('project-url', None)
@@ -380,15 +380,15 @@ class AdminProject(BaseHandler):
         #icon = self.request.get('project-icon', None)
         icon = self.request.get('project-icon')
         if icon:
-            
+
             img = files.blobstore.create(mime_type='img/png')
             with files.open(img, 'a') as f:
                 f.write(icon)
             files.finalize(img)
-            
+
             icon = str(files.blobstore.get_blob_key(img))
             logging.error(icon)
-            
+
         if self._checkurl(url) and self._checkname(name):
             p = Project(
                     key_name = name.strip().lower(),
@@ -405,17 +405,17 @@ class AdminProject(BaseHandler):
             self.user.admins.append(p.key())
             self.user.projects.append(p.key())
             db.put(self.user)
-            
+
             rurl = "/admin/project/%s" % name
             self.redirect(rurl)
             return
-            
+
         self.redirect('/')
-        
-class AdminCollection(BaseHandler):       
+
+class AdminCollection(BaseHandler):
     def post(self,action):
         self.get(action)
-    
+
     def get(self,action):
         self.update=False
         if action=='create':
@@ -425,34 +425,34 @@ class AdminCollection(BaseHandler):
         if action=='modify':
             self.update=True
             self._editbadge()
-            
+
     def _checktitle(self, collection, title):
         co = db.get(db.Key.from_path('Collection',collection, 'Badge',title))
         return True if co is None else False
-    
+
     def _editbadge(self):
         try:
             self.user = UserModel.all().filter('md5 = ', self.usermd5).fetch(1)[0]
         except:
             self.user = None
-            
+
         if not self.user:
             self.redirect('/home')
             return
-        
+
         title = self.request.get('badge-title', None)
         desc = self.request.get('badge-description', None)
-        
+
         coll = self.request.get('collection-identifier', None)
         icon = self.request.get('badge-icon')
-        
+
         coll_key = re.sub(r'[^a-zA-Z0-9-]', '_', coll.strip().lower())
         bkn = re.sub(r'[^a-zA-Z0-9-]', '_', title.strip().lower())
-        
+
         if self.request.get('action', None) == "cancel":
             self.redirect('/admin/collection/%s' % coll_key)
             return
-            
+
         if not self.update:
             if not self._checktitle(coll_key, bkn):
                 rurl = "/admin/collection/%s" % bkn
@@ -470,46 +470,46 @@ class AdminCollection(BaseHandler):
                         title = title,
                         collection = db.Key.from_path('Collection',coll_key),
                         )
-                
+
             if desc and desc.strip() != "":
                 bg.about = desc
-                
+
             if icon:
                 img = files.blobstore.create(mime_type='img/png')
                 with files.open(img, 'a') as f:
                     f.write(icon)
                 files.finalize(img)
-                
+
                 icon = str(files.blobstore.get_blob_key(img))
                 bg.icon = str(icon)
-            
+
             db.put(bg)
-            
+
         self.redirect('/admin/collection/%s' % coll_key)
-        return 
-        
+        return
+
     def _createcollection(self):
         if self.request.get('action', None) == "cancel":
             self.redirect('/home')
             return
-                    
+
         try:
             self.user = UserModel.all().filter('md5 = ', self.usermd5).fetch(1)[0]
         except:
             self.user = None
-            
+
         if not self.user:
             self.redirect('/home')
             return
-        
+
         title = self.request.get('collection-title', None)
         desc = self.request.get('collection-description', None)
         proj = self.request.get('project-identifier', None)
-        
+
         if self._checktitle(title) and self._hasprojectauthority(proj):
-            
+
             proj_key = db.Key.from_path('Project', proj.strip().lower())
-            
+
             kn = re.sub(r'[^a-zA-Z0-9-]', '_', title.strip().lower())
             col = Collection(
                         key_name = kn,
@@ -518,28 +518,28 @@ class AdminCollection(BaseHandler):
                         projects = [proj_key]
                         )
             db.put(col)
-            
+
             p = Project.get(proj_key)
             p.collections.append(col.key())
             db.put(p)
-            
+
             rurl = "/admin/collection/%s" % kn
             self.redirect(rurl)
             return
-            
+
         self.redirect('/project/%s' % proj.strip().lower())
-            
+
 class CollectionProfile(BaseHandler):
     def post(self,cid):
         self.get(cid)
-    
+
     def get(self,cid):
         self.push_html('public_collection_profile.html')
-       
+
 class CollectionProfileAdmin(BaseHandler):
     def post(self,cid):
         self.get(cid)
-    
+
     def get(self,cid):
         um = UserModel.all().filter('md5 = ',self.usermd5).fetch(1)
         if len(um)>0:
@@ -549,16 +549,16 @@ class CollectionProfileAdmin(BaseHandler):
             for p in um.admins:
                 if p in col.projects:
                     a = True
-            
+
             if a:
                 self.push_html('admin_collection_profile.html')
                 return
-            
+
         self.redirect('/home')
         return
-       
-                              
-                              
+
+
+
 application = webapp.WSGIApplication([('/', SiteHome),
                                       ('/user/([^/]+)', UserProfile),
                                       ('/home', UserAdmin),
@@ -571,19 +571,18 @@ application = webapp.WSGIApplication([('/', SiteHome),
                                       ('/org/collection/([^/]+)', AdminCollection),
                                       #('/new', AdminProject),
                                       #('/new/([^/]+)', CreateNewProject),
-                                      
+
                                       ('/give', GiveFakeBadges),
                                       ('/load', LoadFakeData),
                                       #('/user/login', LoginHandler),
                                       ('/logout', LogOut),
                                       ('/apps_login', AppsFederationHandler),
-                                     ],      
+                                     ],
                                      debug=False)
 application = middleware.AeoidMiddleware(application)
 
 def main():
-  util.run_wsgi_app(application)
+    util.run_wsgi_app(application)
 
 if __name__ == "__main__":
-  main()
-
+    main()
