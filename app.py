@@ -426,6 +426,11 @@ class AdminCollection(BaseHandler):
             self.update=True
             self._editbadge()
 
+    def _titletaken(self, title):
+        """Returns true if a Collection title is already taken."""
+        c = db.get(db.Key.from_path('Collection', title))
+        return c is not None
+        
     def _checktitle(self, collection, title):
         co = db.get(db.Key.from_path('Collection', collection, 'Badge', title))
         return True if co is None else False
@@ -506,9 +511,7 @@ class AdminCollection(BaseHandler):
         desc = self.request.get('collection-description', None)
         proj = self.request.get('project-identifier', None)
         
-        # FIXME: _checktitle() takes collection and title params so this call is invalid: 
-        # if self._checktitle(title) and self._hasprojectauthority(proj):        
-        if self._hasprojectauthority(proj):
+        if not self._titletaken(title) and self._hasprojectauthority(proj):        
 
             proj_key = db.Key.from_path('Project', proj.strip().lower())
 
