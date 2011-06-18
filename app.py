@@ -389,9 +389,11 @@ class AdminProject(BaseHandler):
                 project.collections_following.append(ckey)
                 project.put()
         elif action == 'drop':
+            collection.projects.remove(pkey)
             collection.projects_following.remove(pkey)
             collection.projects_joined.remove(pkey)
             collection.put()
+            project.collections.remove(ckey)
             project.collections_following.remove(ckey)
             project.collections_joined.remove(ckey)
             project.put()
