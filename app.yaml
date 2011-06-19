@@ -28,5 +28,8 @@ handlers:
 - url: /api/.*
   script: commplish/api/__init__.py
   
+- url: /org/.*
+  script: org.py
+  
 - url: /.*
   script: app.py

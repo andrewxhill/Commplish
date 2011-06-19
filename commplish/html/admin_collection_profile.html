@@ -3,15 +3,80 @@
     <title>Commplish</title>
     <link rel="stylesheet" type="text/css" href="http://fonts.googleapis.com/css?family=Ubuntu">
     <link rel="stylesheet" href="/css/main.css">
-    <link rel="stylesheet" href="/css/profile.css">
+    <link rel="stylesheet" href="/css/profiles/main.css">
     <link rel="stylesheet" href="/css/forms/main.css">
-    <link rel="stylesheet" href="/css/profile_admin.css">
+    <link rel="stylesheet" href="/css/profiles/profile_admin.css">
     <script src="//ajax.googleapis.com/ajax/libs/jquery/1.6.1/jquery.min.js" type="text/javascript"></script>
     <script>
+        var publicBadges = 0;
+        var limit = 9;
+        var offset = 0;
+        var search = "";
+        
+        function badgeSearch(){
+            $('.badge-search-results').empty();
+            var params = {'tag':search, 'limit': limit, 'offset': offset};
+            var nBadges = 0
+            $.getJSON('/api/badge/search',params, function(data) {
+                for (i in data.badges) {
+                    var br = $('<div>').addClass('badge-result').attr('title',"Credit: "+data.badges[i].credit);
+                    br.append($('<div>').addClass('title').text(data.badges[i].title));
+                    br.append($('<img>').addClass('icon').attr('src',data.badges[i].icon));
+                    //br.append($('<a>').addClass('credit').attr('href',data.badges[i].credit).text('Credit'));
+                    br.append($('<div>').addClass('key').text(data.badges[i].key));
+                    $('.badge-search-results').append(br);
+                    nBadges++;
+                }
+                if (nBadges==limit){
+                    $('.next-page').addClass('available');
+                } else {
+                    $('.next-page').removeClass('available');
+                }
+                    
+                if (0 < offset){
+                    $('.last-page').addClass('available');
+                } else {
+                    $('.last-page').removeClass('available');
+                }
+                $('.badge-result').click(function(){
+                    $('#block').children('.content-block').removeClass('selected');
+                    $('#block').find('#add').addClass('selected');
+                    $('.add-icon').empty();
+                    $('.add-icon').append(
+                        $('<img>').attr('src',$(this).find('.icon').attr('src'))
+                    );
+                    $('.add-icon').append(
+                        $('<div>').addClass('credit').text($(this).attr('title'))
+                    );
+                    $('.add-icon').append(
+                        $('<input type="hidden" >').attr('name','badge-icon-key').val($(this).find('.key').text())
+                    );
+                })
+            });
+        }
         $('document').ready(function(){
             var urlparts = window.location.pathname.split('/');
             var collection = urlparts[urlparts.length - 1];
             var cl;
+            
+            badgeSearch();
+            $('.next-page').click(function(){
+                offset = offset + 9;
+                badgeSearch();
+            });
+            $('.last-page').click(function(){
+                offset = offset - 9;
+                badgeSearch();
+            });
+            $('.badge-search-go').click(function(){
+                search = $('.badge-search-value').val();
+                badgeSearch();
+            });
+            
+            $('.find-public').click(function(){
+                $('#block').children('.content-block').removeClass('selected');
+                $('#block').find('#public-icons').addClass('selected');
+            });
             
             $('#block').find('.collection-identifier').val(collection);
             $('.collection-id').val(collection)            
@@ -78,6 +143,8 @@
 <body>
     <div id="header">
         <div id="content">commplish</div>
+            <a class="inout" href="/logout">logout</a>
+            <a class="user-home" href="/home">home</a>
     </div>
     <div id="container">
         <div id="content">
@@ -167,11 +234,12 @@
                                 <div class="description">A brief description of the badge</div>
                             </div>
                         </div>
-                        <div class="input-row">
+                        <div class="input-row icon">
                             <label>Icon</label>
-                            <div class="input-column">
+                            <div class="input-column add-icon">
                                 <input type="file" name="badge-icon" class="file"/>
                                 <div class="description">An icon for the badge</div>
+                                <div class="find-public">Or search public icons</div>
                             </div>
                         </div>
                         <input type="hidden" name="collection-identifier" class="collection-identifier" value="" />
@@ -210,6 +278,19 @@
                             
                     </form>
                     
+                    <div id="public-icons" class="content-block">
+                        <div class="navigate">
+                            <a class="last-page">back</a>
+                            <a class="next-page">next</a>
+                            <div class="icon-search">
+                                <input type="text" class='badge-search-value'>
+                                <button class="badge-search-go">Search</button>
+                            </div>
+                        </div>
+                        <div class="badge-search-results">
+                            
+                        </div>
+                    </div>
             </div>
         </div>
         <div id="footer">(c) commplish</div>

@@ -89,3 +89,10 @@ class Project(db.Model):
     def fromname(cls, name):
         """Returns a Project entity for the given project name of None."""
         return Project.get_by_key_name(name.strip().lower())
+
+
+class PublicBadges(db.Model):
+    title = db.StringProperty()
+    icon = db.StringProperty()
+    tags = db.StringListProperty()
+    credit = db.StringProperty()

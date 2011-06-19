@@ -38,13 +38,21 @@
                     }
                 }
             });
+            $.getJSON('/status', function(data) {
+                $('.inout').attr('href', data.url).text(data.text);
+                $('.user-home').attr('href', data.home);
+            });
         });
     </script>
 
 </head>
 <body>
     <div id="header">
-        <div id="content">commplish</div>
+        <div id="content">
+            <span class="site">commplish</span>
+            <a class="inout" href="/home">login</a>
+            <a class="user-home" href="/">home</a>
+        </div>
     </div>
     <div id="container">
         <div id="content">

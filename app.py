@@ -38,10 +38,12 @@ class BaseHandler(webapp.RequestHandler):
     def __init__(self):
         self.user = users.get_current_user()
         self.usermd5 = None
+        self.usermodel = None
         if self.user:
             m = md5.new()
             m.update(self.user.email().strip().lower())
             self.usermd5 = str(m.hexdigest())
+            self.usermodel = UserModel.frommd5(self.usermd5)
     def post(self):
         self.get()
     def get(self):
@@ -93,15 +95,16 @@ class BaseHandler(webapp.RequestHandler):
                 return
             self.push_html('login.html')
             return True
-        m = md5.new()
-        m.update(self.user.email().strip().lower())
-        self.usermd5 = str(m.hexdigest())
-        #self.usermodel = UserModel.all(keys_only=True).filter('md5 = ',self.usermd5).fetch(1)
-        self.usermodel = UserModel.frommd5(self.usermd5)
-        #if len(self.usermodel) == 0:
+        if self.usermd5 is None:
+            m = md5.new()
+            m.update(self.user.email().strip().lower())
+            self.usermd5 = str(m.hexdigest())
+            
         if self.usermodel is None:
-            self.signup()
-            return True
+            self.usermodel = UserModel.frommd5(self.usermd5)
+            if self.usermodel is None:
+                self.signup()
+                return True
         
             
     def _hasprojectauthority(self,pid):
@@ -331,455 +334,81 @@ class LoadFakeData(BaseHandler):
             db.put([usr, bds])
             db.put(ubds)
 
-class AdminUser(BaseHandler):
-    def __init__(self):
-        self.user = None
-        self.sendurl = '/home'
-
-    def post(self,action):
-        self.get(action)
-
-    def get(self,action):
-        if action=='create':
-            self._createuser()
-
-    def _createuser(self):
-        if self.request.get('action', None) == "cancel":
-            self.redirect('/')
-            return
-
-        self.user = users.get_current_user()
-
-        nickname = self.request.get('nickname', None)
-
-        if self.user is not None and UserModel.get_by_key_name(nickname.strip().lower()) is None:
-
-            m = md5.new()
-            m.update(self.user.email().strip().lower())
-
-            u = UserModel(
-                    key_name = nickname.strip().lower(),
-                    nickname = nickname,
-                    user = self.user,
-                    md5 = str(m.hexdigest()),
-                    about = self.request.get('about', None),
-                    joinDate = datetime.datetime.now()
-                    )
-            db.put(u)
-
-        self.redirect(self.sendurl)
-
-class AdminProject(BaseHandler):
-    def __init__(self):
-        self.user = None
-        self.sendurl = '/project'
-
-    def post(self,action):
-        self.get(action)
-
-    def get(self,action):
-        if action=='create':
-            self._createproject()
-        elif action == 'add-admin':
-            self._addadmin()
-        elif action == 'join-collection':
-            self._handlecollection('join')
-        elif action == 'follow-collection':
-            self._handlecollection('follow')
-        elif action == 'drop-collection':
-            self._handlecollection('drop')
-
-    def _handlecollection(self, action):
-        """Handles a collection action by joining, following, or dropping a collection."""
-        pid = self.request.get('project-id', None) # Project id
-        cid = self.request.get('collection-id', None) # Collection id
-        if not pid or not cid:
-            logging.error('Unable to join collection %s to project %s' % (cid, pid))
-            self.redirect('/home')
-            return
-
-        usermodel = UserModel.fromemail(users.get_current_user().email())
-        # TODO: Verify that usermodel is admin of project?
-        
-        # Gets the Project entity for pid and redirects if None:
-        project = Project.fromname(pid)
-        if not project:
-            logging.error('Invalid project id ' + pid)
-            self.redirect('/home')
-            return
-
-        # Gets the Collection entity for cid and redirects if None:
-        collection = Collection.fromtitle(cid)
-        if not collection:
-            logging.error('Invalid collection %s' % cid)
-            self.redirect('/home')
-            return
-        
-        pkey = project.key()
-        ckey = collection.key()
-
-        # Updates Collection and Project entities based on action:
-        if action == 'join':
-            if pkey not in collection.projects_joined:            
-                collection.projects_joined.append(pkey)        
-                collection.put()
-            if ckey not in project.collections_joined:
-                project.collections_joined.append(ckey)
-                project.put()
-        elif action == 'follow':
-            if pkey not in collection.projects_following:
-                collection.projects_following.append(pkey)
-                collection.put()
-            if ckey not in project.collections_following:
-                project.collections_following.append(ckey)
-                project.put()
-        elif action == 'drop':
-            collection.projects.remove(pkey)
-            collection.projects_following.remove(pkey)
-            collection.projects_joined.remove(pkey)
-            collection.put()
-            project.collections.remove(ckey)
-            project.collections_following.remove(ckey)
-            project.collections_joined.remove(ckey)
-            project.put()
-
-        logging.info('Joined collection %s with project %s' % (cid, pid))    
-        self.redirect('/admin/project/%s' % pid)    
-
-    def _addadmin(self):
-        """Adds an admin user to a project."""
-        pid = self.request.get('project-id', None) # Project id
-        uid = self.request.get('admin-user-id', None) # User id
-        if not pid or not uid:
-            logging.error('Unable to connect uid %s with pid %s' % (uid, pid))
-            self.redirect('/home')
-            return
-        
-        # Gets the Project entity for pid and redirects if None:
-        project = Project.fromname(pid)
-        if not project:
-            logging.error('Invalid project id ' + pid)
-            self.redirect('/home')
-            return
-
-        # Gets the UserModel entity for uid and redirects if None:
-        usermodel = UserModel.fromemail(uid)
-        if not usermodel:
-            logging.error('Invalid user id ' + uid)
-            self.redirect('/home')
-            return
-        
-        # Connects the user and the project without introducing duplicates:
-        pkey = project.key()
-        if pkey not in usermodel.projects:            
-            usermodel.projects.append(pkey)        
-            usermodel.put()
-        ukey = usermodel.key()
-        if ukey not in project.admins:
-            project.admins.append(ukey)
-            project.put()
-
-        logging.info('Connected uid %s to pid %s' % (uid, pid))    
-        self.redirect('/admin/project/%s' % pid)    
-
-    def _checkname(self, name):
-        pk = db.get(db.Key.from_path('Project',name.strip().lower()))
-        return True if pk is None else False
-
-    def _checkurl(self, url):
-        if url.strip()=="":
-            return False
-        url = url.lower().lstrip('http://')
-        url = url.lstrip('www.')
-        urls = ["http://" + url, "http://www." + url]
-        pk = Project.all(keys_only=True).filter('url = ', urls[0]).fetch(1)
-        if len(pk) == 0:
-            pk = Project.all(keys_only=True).filter('url = ', urls[1]).fetch(1)
-        return True if len(pk)==0 else False
-
-    def _validurl(self, url):
-        url = url.lower().lstrip('http://')
-        return "http://" + url
-
-    def _createproject(self):
-        if self.request.get('action', None) == "cancel":
-            self.redirect('/home')
-            return
-
-        user = users.get_current_user()
-        m = md5.new()
-        m.update(user.email().strip().lower())
-        usermd5 = str(m.hexdigest())
-
-        try:
-            self.user = UserModel.all().filter('md5 = ', usermd5).fetch(1)[0]
-        except:
-            self.user = None
-
-        if not self.user:
-            self.redirect('/')
-            return
-
-        fullName = self.request.get('project-full-name', None)
-        name = self.request.get('project-name', None)
-        url = self.request.get('project-url', None)
-        desc = self.request.get('project-description', None)
-        #icon = self.request.get('project-icon', None)
-        icon = self.request.get('project-icon')
-        if icon:
-
-            img = files.blobstore.create(mime_type='img/png')
-            with files.open(img, 'a') as f:
-                f.write(icon)
-            files.finalize(img)
-
-            icon = str(files.blobstore.get_blob_key(img))
-            logging.error(icon)
-
-        if self._checkurl(url) and self._checkname(name):
-            p = Project(
-                    key_name = name.strip().lower(),
-                    fullName = fullName.strip(),
-                    name = name,
-                    url = self._validurl(url),
-                    about = desc,
-                    icon = icon,
-                    admins = [self.user.key()],
-                    joinDate = datetime.datetime.now(),
-                    secret = str(uuid.uuid4())
-                    )
-            db.put(p)
-            self.user.admins.append(p.key())
-            self.user.projects.append(p.key())
-            db.put(self.user)
-
-            rurl = "/admin/project/%s" % name
-            self.redirect(rurl)
-            return
-
-        self.redirect('/')
-
-class AdminCollection(BaseHandler):
-    def post(self,action):
-        self.get(action)
-
-    def get(self,action):
-        self.update=False
-        if action=='create':
-            self._createcollection()
-        if action=='add':
-            self._editbadge()
-        if action=='modify':
-            self.update=True
-            self._editbadge()
-        if action == 'invite':
-            self._invite()
-        if action == 'accept-invite':
-            self._acceptinvite()
-            
-    def _acceptinvite(self):
-        pid = self.request.get('pid', None)
-        cid = self.request.get('cid', None)
-        token = self.request.get('token', None)
-        if not pid or not cid or not token:
-            logging.error('Unable to accept invitation')
-            self.response.out.write('Sorry, invalid request parameters')
-            return
-
-        project = Project.fromname(pid)
-        adminuser = UserModel.frommd5(token)
-        collection = Collection.fromtitle(cid)
-        if not project or not adminuser or not collection:
-            logging.error('Unable to accept invitation')
-            self.response.out.write('Sorry, invalid request state')
-            return
-
-        if adminuser.key() not in project.admins:
-            logging.error('Unable to accept invitation')
-            self.response.out.write('Sorry, invalid request admin')
-            return
-        
-        ckey = collection.key()
-        if ckey not in project.collections:
-            project.collections.append(ckey)
-            project.put()
-        pkey = project.key()
-        if pkey not in collection.projects:
-            collection.projects.append(pkey)
-            collection.put()
-
-        self.response.out.write(
-            'Thanks %s! Your project %s is now connected to the %s badge collection!' % \
-                (adminuser.nickname, project.fullName, collection.title))
-                                    
-
-    def _invite(self):
-        """Invites a project admin to join a collection."""
-        pid = self.request.get('invited-project-id', None)
-        cid = self.request.get('collection-id', None)
-        if not pid or not cid:
-            logging.error('Unable to invite project to collection')
-            self.redirect('/home')
-            return
-        
-        project = Project.fromname(pid)
-        if not project:
-            logging.error('Project for %s does not exits' % pid)
-            self.redirect('/home')
-            return
-        
-        collection = Collection.fromtitle(cid)
-        if not collection:
-            logging.error('Collection for %s does not exist' % cid)
-            self.redirect('/home')
-            return
-                
-        # Note this just grabs the first admin but there may be many:
-        adminuser = db.get(project.admins[0])
-        token = adminuser.md5
-        user_address = adminuser.user.email()
-        params = urllib.urlencode({'cid':cid, 'pid': pid, 'token': token})
-        accept_url = '%s/org/collection/accept-invite?%s' % (self.request.host_url, params)
-        logging.info('Confirmation URL: %s' % accept_url)
-        sender_address = "Commplish App <invites@appid.appspotmail.com>"
-        subject = "You've been invited to join a badge collection!"
-        body = """
-To accept this invite please click this link:
-
-%s
-""" % accept_url
-
-        mail.send_mail(sender_address, user_address, subject, body)
-        
-
-    def _titletaken(self, title):
-        """Returns true if a Collection title is already taken."""
-        c = db.get(db.Key.from_path('Collection', title))
-        return c is not None
-        
-    def _checktitle(self, collection, title):
-        co = db.get(db.Key.from_path('Collection', collection, 'Badge', title))
-        return True if co is None else False
-
-    def _editbadge(self):
-        try:
-            self.user = UserModel.all().filter('md5 = ', self.usermd5).fetch(1)[0]
-        except:
-            self.user = None
-
-        if not self.user:
-            self.redirect('/home')
-            return
-
-        title = self.request.get('badge-title', None)
-        desc = self.request.get('badge-description', None)
-
-        coll = self.request.get('collection-identifier', None)
-        icon = self.request.get('badge-icon')
-
-        coll_key = re.sub(r'[^a-zA-Z0-9-]', '_', coll.strip().lower())
-        bkn = re.sub(r'[^a-zA-Z0-9-]', '_', title.strip().lower())
-
-        if self.request.get('action', None) == "cancel":
-            self.redirect('/admin/collection/%s' % coll_key)
-            return
-
-        if not self.update:
-            if not self._checktitle(coll_key, bkn):
-                rurl = "/admin/collection/%s" % bkn
-                self.redirect(rurl)
-                return
-        if self._hascollectionauthority(coll_key):
-            if self.update:
-                bg = db.get(db.Key.from_path('Collection',coll_key,'Badge',bkn))
-                logging.error(bg)
-                logging.error(bg.title)
-            else:
-                bg = Badge(
-                        parent = db.Key.from_path('Collection',coll_key),
-                        key_name = bkn,
-                        title = title,
-                        collection = db.Key.from_path('Collection',coll_key),
-                        )
-
-            if desc and desc.strip() != "":
-                bg.about = desc
-
-            if icon:
+class LoadPublicIcons(webapp.RequestHandler):
+    def get(self):
+        path = os.path.join(os.path.dirname(__file__), "publicbadges",'titles.csv')
+        titles = open(path, 'r')
+        ct = 1
+        for t in titles.readlines():
+            t = t.replace(',','').strip()
+            if t != 'none':
+                imgpath = os.path.join(os.path.dirname(__file__), "publicbadges",'black-comment-bubble-icon_%03d.png' % ct)
+                logging.error(imgpath)
                 img = files.blobstore.create(mime_type='img/png')
                 with files.open(img, 'a') as f:
-                    f.write(icon)
+                    f.write(open(imgpath, 'r').read())
                 files.finalize(img)
+                icon_key = files.blobstore.get_blob_key(img)
+                
+                tags = [t.strip().lower()]
+                ts = t.strip().lower().split(' ')
+                if len(ts)>1:
+                    for s in ts:
+                        tags.append(tags)
+                b = PublicBadges(
+                        title = t,
+                        icon = str(icon_key),
+                        tags = tags,
+                        credit = "http://icons.mysitemyway.com"
+                    )
+                db.put(b)
+                url = images.get_serving_url(icon_key, size=int(128))
+                self.response.out.write("""
+                    <p>
+                        %s </br>
+                        <img src="%s" />
+                    </p>""" % (t,url)
+                )
+                
+            ct+=1
 
-                icon = str(files.blobstore.get_blob_key(img))
-                bg.icon = str(icon)
-
-            db.put(bg)
-
-        self.redirect('/admin/collection/%s' % coll_key)
+class UserStatus(webapp.RequestHandler):
+    def post(self):
+        self.get()
+    def get(self):
+        self.user = users.get_current_user()
+        if self.user:
+            endpoint = users.create_logout_url('/')
+            text = 'logout'
+            home = "/home"
+        else:
+            endpoint = "/home"
+            text = 'login'
+            home = "/"
+        out = {'text': text,
+               'url': endpoint,
+               'home': home}
+               
+        self.response.out.write(
+            simplejson.dumps(out) )
         return
-
-    def _createcollection(self):
-        if self.request.get('action', None) == "cancel":
-            self.redirect('/home')
-            return
-
-        try:
-            self.user = UserModel.all().filter('md5 = ', self.usermd5).fetch(1)[0]
-        except:
-            self.user = None
-
-        if not self.user:
-            self.redirect('/home')
-            return
-
-        title = self.request.get('collection-title', None)
-        desc = self.request.get('collection-description', None)
-        proj = self.request.get('project-identifier', None)
         
-        if not self._titletaken(title) and self._hasprojectauthority(proj):        
+application = webapp.WSGIApplication([
+              ('/', SiteHome),
+              ('/user/([^/]+)', UserProfile),
+              ('/collection/([^/]+)', CollectionProfile),
+              ('/project/([^/]+)', ProjectProfile),
+              ('/home', UserAdmin),
+              ('/admin/project/([^/]+)', ProjectProfileAdmin),
+              ('/admin/collection/([^/]+)', CollectionProfileAdmin),
+              ('/status', UserStatus),
+              ('/logout', LogOut),
 
-            proj_key = db.Key.from_path('Project', proj.strip().lower())
-
-            kn = re.sub(r'[^a-zA-Z0-9-]', '_', title.strip().lower())
-            col = Collection(
-                        key_name = kn,
-                        title = title,
-                        about = desc,
-                        projects = [proj_key]
-                        )
-            db.put(col)
-
-            p = Project.get(proj_key)
-            p.collections.append(col.key())
-            db.put(p)
-
-            rurl = "/admin/collection/%s" % kn
-            self.redirect(rurl)
-            return
-
-        self.redirect('/project/%s' % proj.strip().lower())
-
-
-
-
-application = webapp.WSGIApplication([('/', SiteHome),
-                                      ('/user/([^/]+)', UserProfile),
-                                      ('/home', UserAdmin),
-                                      ('/collection/([^/]+)', CollectionProfile),
-                                      ('/project/([^/]+)', ProjectProfile),
-                                      ('/admin/project/([^/]+)', ProjectProfileAdmin),
-                                      ('/admin/collection/([^/]+)', CollectionProfileAdmin),
-                                      ('/org/user/([^/]+)', AdminUser),
-                                      ('/org/project/([^/]+)', AdminProject),
-                                      ('/org/collection/([^/]+)', AdminCollection),
-                                      ('/logout', LogOut),
-
-                                      ('/give', GiveFakeBadges),
-                                      ('/load', LoadFakeData),
-                                     ],
-                                     debug=True)
-#application = middleware.AeoidMiddleware(application)
+              ('/give', GiveFakeBadges),
+              ('/load', LoadFakeData),
+              ('/public', LoadPublicIcons),
+             ],
+             debug=True)
 
 def main():
     util.run_wsgi_app(application)

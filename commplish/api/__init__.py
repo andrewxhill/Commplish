@@ -19,7 +19,6 @@ import re
 import urllib
 import os
 
-
 class UrlTest(webapp.RequestHandler):
     def _clean(self,url):
         url = url.lower().lstrip('http://')
@@ -75,7 +74,34 @@ class NameAvailTest(webapp.RequestHandler):
                 simplejson.dumps(out)
             )
 
-class ProjectService(webapp.RequestHandler):
+class APIHandler(webapp.RequestHandler):
+    def __init__(self):
+        self.user = users.get_current_user()
+        self.usermd5 = None
+        if self.user:
+            m = md5.new()
+            m.update(self.user.email().strip().lower())
+            self.usermd5 = str(m.hexdigest())
+    def post(self):
+        self.get()
+    def get(self):
+        pass
+    def _hasprojectauthority(self,pid):
+        if db.Key.from_path('Project', pid.strip().lower()) in self.user.admins:
+            return True
+        else:
+            return False
+    def _hascollectionauthority(self,cid):
+        col = Collection.get_by_key_name(cid)
+        a = False
+        for p in self.user.admins:
+            if p in col.projects:
+                a = True
+        return a
+    def toid(self,title):
+        return re.sub(r'[^a-zA-Z0-9-]', '_', title.strip().lower())
+  
+class ProjectService(APIHandler):
     def get(self,pid):
         self.post(pid)
     def post(self,pid):
@@ -116,6 +142,7 @@ class ProjectService(webapp.RequestHandler):
                 s = {
                         "title": bd.title,
                         "about": bd.about,
+                        "cid": self.toid(bd.title),
                         "badges": []
                     }
                 """Add all the badges available"""
@@ -124,6 +151,7 @@ class ProjectService(webapp.RequestHandler):
                             "title": b.title,
                             "about": b.about,
                             "icon": images.get_serving_url(b.icon, size=int(sz)),
+                            
                         }
                     s['badges'].append(t)
                 out['collections'].append(s)
@@ -132,7 +160,7 @@ class ProjectService(webapp.RequestHandler):
             simplejson.dumps(out)
         )
 
-class CollectionService(webapp.RequestHandler):
+class CollectionService(APIHandler):
     def get(self,cid):
         self.post(cid)
     def post(self,cid):
@@ -166,7 +194,7 @@ class CollectionService(webapp.RequestHandler):
             simplejson.dumps(out)
         )
 
-class UserService(webapp.RequestHandler):
+class UserService(APIHandler):
     def profilebymd5(self,usermd5):
         pass
     def profilebyid(self,uid):
@@ -287,12 +315,39 @@ class UserService(webapp.RequestHandler):
         if action=="auth":
             self.profilebyauth()
 
+class BadgeSearch(APIHandler):
+    def get(self):
+        search = self.request.get('tag', "")
+        offset = self.request.get('offset', 0)
+        limit = self.request.get('limit', 9)
+        out = {'badges':[]}
+        bg = PublicBadges.all()
+        if search.strip() != "":
+            bg.filter('tags = ',str(search).strip().lower())
+        
+        q = bg.fetch(int(limit), offset=int(offset))
+        for b in q:
+            out['badges'].append(
+                {
+                 "title":b.title,
+                 "icon":images.get_serving_url(b.icon, size=int(130)),
+                 "credit": b.credit,
+                 "key": b.icon,
+                }
+            )
+        self.response.out.write(
+            simplejson.dumps(out)
+        )
+        
+        
+
 application = webapp.WSGIApplication([
                                       ('/api/project/([^/]+)', ProjectService),
                                       ('/api/collection/([^/]+)', CollectionService),
                                       ('/api/user/([^/]+)', UserService),
                                       ('/api/user/([^/]+)/([^/]+)', UserService),
                                       ('/api/available/([^/]+)/([^/]+)', NameAvailTest),
+                                      ('/api/badge/search', BadgeSearch),
                                       ('/api/url', UrlTest),
                                      ],
                                      debug=False)

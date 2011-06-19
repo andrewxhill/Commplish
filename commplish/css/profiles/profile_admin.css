@@ -1,0 +1,172 @@
+
+.content-block {
+    display: none;
+}
+.content-block.selected {
+    display: block;
+}
+#profile .menu a {
+    margin: 1px 10px 3px 0px;
+    padding: 0;
+    font-size: 14px;
+}
+#profile .menu a.selected {
+    border-bottom: 1px dotted grey;
+}
+#badges .badge-new {
+    position: relative;
+    float: right;
+    margin-top: 5px;
+    margin-right: 35px;
+    font-size: 18px;
+}
+#badges .badge-new button{
+    cursor: pointer;
+    height: 35px;
+    margin-right: 10px;
+    padding-left: 15px;
+    padding-right: 15px;
+    font-size: 18px;
+    font-weight: bold;
+    border: 4px solid #ff9533;
+    background-color: #ff4500;
+    color: white;
+    border-radius: 5px;
+}
+#badges .badge-new button:hover{
+    background-color: #ff5533;
+}
+
+#badges .badge-edit {
+    position: relative;
+    float: left;
+    height: 192px;
+    width: 144px;
+    padding-left: 5px;
+    padding-right: 5px;
+    margin-bottom: 10px;
+    font-size: 18px;
+}
+#badges .badge-edit .title{
+    float: left;
+    width: 100%;
+    text-align: center;
+}
+#badges .badge-edit img{
+    float: left;
+    width: 64px;
+    padding-left: 35px;
+}
+#badges .badge-edit .about{
+    float: left;
+    width: 100%;
+    height: 64px;
+    font-size: 14px;
+    color: #111;
+    border-bottom: 2px dotted #aaa;
+    margin-bottom: 4px;
+    padding-bottom: 4px;
+}
+#badges .badge-edit .edit,
+#badges .badge-edit .drop{
+    cursor: pointer;
+    float: left;
+    width: 40%;
+    margin-left: 5%;
+    font-size: 14px;
+    text-align: center;
+    color: #001100;
+}
+#badges .badge-edit .edit:hover{
+    color: #006600;
+}
+#badges .badge-edit .drop:hover{
+    color: #660000;
+}
+#public-icons .navigate{
+    width: 100%;
+    float: left;
+}
+#public-icons .last-page,
+#public-icons .next-page{
+    float: left;
+    margin-right: 15px;
+    font-size: 16px;
+    font-style: italic;
+    display: none;
+}
+#public-icons .next-page.available,
+#public-icons .last-page.available{
+    display: block;
+    border-bottom: 1px dotted #aaa;
+    cursor: pointer;
+}
+#public-icons .icon-search{
+    float: right;
+    font-size: 16px;
+}
+
+#public-icons .badge-search-results{
+    width: 95%;
+    padding: 10px;
+    margin-top: 5px;
+}
+#public-icons .badge-search-results .badge-result{
+    float: left;
+    position: relative;
+    height: 190px;
+    margin: 6px;
+    font-size: 14px;
+    border-radius: 10px;
+    padding: 4px;
+}
+#public-icons .badge-search-results .badge-result:hover{
+    background: #ffe8e0;
+    cursor: pointer;
+}
+#public-icons .badge-search-results .badge-result .key{
+    display: none;
+}
+#public-icons .badge-search-results .badge-result .title,
+#public-icons .badge-search-results .badge-result .icon{
+    width: 100%;
+    text-align: center;
+}
+#public-icons .badge-search-results .badge-result img.icon{
+    width: 130px
+}
+#public-icons .badge-search-results .badge-result .credit{
+    margin-left: 10px;
+}
+#add .add-icon{
+    position: relative;
+    float: left;
+    width: 60%;
+}
+#add .add-icon img{
+    position: relative;
+    float: left;
+    width: 60px;
+    margin-left: 30px;
+}
+#add .add-icon .credit{
+    position: relative;
+    float: left;
+    width: 80px;
+    margin-left: 10px;
+    font-size: 12px;
+}
+#add .input-row.icon{
+    height: 100px;
+}
+#add .find-public {
+    color: #000055;
+    font-size: 20px;
+    text-align: left;
+    margin-top: 20px;
+    text-decoration: underline;
+}
+#add .find-public:hover{
+    color: #000000;
+    cursor: pointer;
+}

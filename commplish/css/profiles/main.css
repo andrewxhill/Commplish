@@ -27,12 +27,17 @@
     position: relative;
     width: 180px;
     padding: 4px 2px 4px 6px;
+    margin-top: 8px;
+    margin-bottom: 8px;
     font-size: 14px;
+    font-weight: bold;
+    font-style: italic;
     color: #474747;
     text-align: left;
 }
 #profile .content .url a,
-#profile .content .link{
+#profile .content a{
+    cursor: pointer;
     float: left;
     position: relative;
     width: 180px;
@@ -40,11 +45,20 @@
     font-size: 14px;
     font-weight: bold;
     color: #474747;
-    text-align: left;
+    text-align: right;
 }
-#profile .content .link.selected,
-#profile .content .link:hover {
+#profile .content .info{
+    float: left;
+    position: relative;
+    width: 180px;
+    padding: 4px 8px 4px 8px;
+    font-size: 14px;
+    color: #474747;
+    text-align: right;
+}
+#profile .content a.selected {
     color: black;
+    border-bottom: 1px dotted grey;
 }
 
 
@@ -67,38 +81,7 @@
 }
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-#projects {
-    float: left;
-    position: relative;
-    width: 265px;
-    margin-right: 10px;
-    margin-bottom: 10px;
-    background: rgba(255, 85, 0, 0.1);
-    height: 320px;
-}
-#projects .content {
-    float: left;
-    position: relative;
-    width: 260px;
-    padding: 10px;
-    font-size: 18px;
-}
-
-#badges,
-#block{
+#badges{
     float: left;
     position: relative;
     width: 500px;
@@ -109,25 +92,44 @@
     float: left;
     font-weight: bold;
 }
-#badges .badge-set{
+#badges .collection{
     width: 100%;
     float: left;
     text-align: center;
 }
-#badges .badge-set .name{
+#badges .collection .name{
     width: 90%;
-    margin: 4%;
     padding-bottom: 2px;
     text-align: center;
     color: #474747;
     font-size: 16px;
     border-bottom: 1px dotted grey;
 }
-
-/* Badge styles for a Project profile page
- *
- */
-#badges .badge-set .badge{
+#badges .collection .name a{
+    font-size: 12px;
+    margin-left: 5px;
+}
+#badges .collection .from{
+    position: relative;
+    float: left;
+    width: 95%;
+    margin-left: 40px;
+    margin-bottom: 4px;
+    text-align: left;
+    color: #474747;
+    font-size: 14px;
+}
+#badges .collection .from div{
+    float: left;
+}
+#badges .collection .from a{
+    float: left;
+    margin-left: 10px;
+    color: #474747;
+    border-bottom: 1px dotted #474747;
+    text-decoration: none;
+}
+#badges .collection .badge{
     float: left;
     position: relative;
     margin: 2px 8px 2px 8px;
@@ -135,21 +137,36 @@
     height: 182px;
     text-align: center;
 }
-#badges .badge-set .badge img{
+#badges .collection .badge img{
     float: left;
     height: 144px;
 }
-#badges .badge-set .badge .title{
+#badges .collection .badge .title{
     float: left;
     width: 144px;
-    font-size: 18px;
+    font-size: 16px;
 }
 
+#badges .collection .badge.medium{
+    float: left;
+    position: relative;
+    margin: 2px 8px 2px 8px;
+    width: 100px;
+    height: 120px;
+    text-align: center;
+}
+#badges .collection .badge.medium img{
+    float: left;
+    max-height: 100px;
+    max-width: 100px;
+}
+#badges .collection .badge.medium .title{
+    float: left;
+    width: 100px;
+    font-size: 12px;
+}
 
-/* Badge styles for a User profile page
- *
- */
-#badges .badge-set .badge.small{
+#badges .collection .badge.small{
     float: left;
     position: relative;
     margin: 2px 8px 2px 8px;
@@ -157,45 +174,12 @@
     height: 91px;
     text-align: center;
 }
-#badges .badge-set .badge.small img{
+#badges .collection .badge.small img{
     float: left;
     height: 72px;
 }
-#badges .badge-set .badge.small .title{
+#badges .collection .badge.small .title{
     float: left;
     width: 72px;
-    font-size: 14px;
-}
-
-
-
-
-#badges .badge-set .projects{
-    width: 100%;
-    position: relative;
-    float: left;
-    padding: 0 0 10px 0;
-    color: #5a5a5a;
-}
-#badges .badge-set .projects .title{
-    position: relative;
-    float: left;
-    margin-left: 35px;
-    margin-right: 5px;
     font-size: 12px;
-    
-}
-#badges .badge-set .projects .project{
-    position: relative;
-    float: left;
-    margin-right: 5px;
-    font-size: 12px;
-    text-align: center;
-}
-#badges .badge-set .projects .project a{
-    padding: 1px 2px 1px 2px;
-    color: #5a5a5a;
-}
-#badges .badge-set .projects .project a:hover{
-    color: black;
 }

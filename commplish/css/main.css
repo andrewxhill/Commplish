@@ -32,11 +32,12 @@ body{
     font-size: 1.5em;
     font-weight: bold;
 }
-#header #content a{
+#header #content a {
     color: #fefefe;
     float: right;
     text-decoration: none;
     font-size: 14px;
+    margin-left: 10px;
 }
 #container{
     position: absolute;
@@ -73,6 +74,14 @@ body{
 #container #content .left-menu .row a.selected{
     color: #ff4500;
 }
+
+#block{
+    float: left;
+    position: relative;
+    width: 500px;
+    padding: 20px;
+}
+
 #container #footer{
     width: 100%;
     position: relative;

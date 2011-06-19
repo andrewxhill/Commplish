@@ -3,9 +3,9 @@
     <title>Commplish</title>
     <link rel="stylesheet" type="text/css" href="http://fonts.googleapis.com/css?family=Ubuntu">
     <link rel="stylesheet" href="/css/main.css">
-    <link rel="stylesheet" href="/css/profile.css">
+    <link rel="stylesheet" href="/css/profiles/main.css">
     <link rel="stylesheet" href="/css/forms/main.css">
-    <link rel="stylesheet" href="/css/profile_admin.css">
+    <link rel="stylesheet" href="/css/profiles/profile_admin.css">
     <script src="//ajax.googleapis.com/ajax/libs/jquery/1.6.1/jquery.min.js" type="text/javascript"></script>
     <script>
         $('document').ready(function(){
@@ -15,6 +15,16 @@
             
             $('#block').find('.project-identifier').val(project);
             $('.project-id').val(project)
+            $('.public-id').text(project)
+            $('.show-private-key').click(function(){
+                var self = this;
+                $.getJSON('/org/project/get-secret', {'project-id':project}, function(data) {
+                    var p = $('#show-private-key').prepend(
+                        $('<i>').text(data.secret)
+                    );
+                    $(self).remove();
+                });
+            });
             
             $('#profile .menu a').click(function(){
                 $('#profile .menu').children('a').removeClass('selected');
@@ -28,7 +38,25 @@
             $.getJSON('/api/project/'+project+'?s=144', function(data) {
                 $('#block .project-full-name').val(data.fullName);
                 $('#block .project-description').val(data.about);
-                $('#profile .content .icon').attr('src',data.icon);                
+                $('#profile .content .icon').attr('src',data.icon);   
+                
+                if (data.collections.length == 0){
+                    $('#badges').append(
+                        $('<div>').addClass('name').text('You have no collections')
+                    ); 
+                } else {
+                    for ( i in data.collections ) {
+                        var bs = $('<div>').addClass('collection');
+                        bs.append($('<div>').addClass('name').text(data.collections[i].title).append($('<a>').attr('href','/admin/collection/'+ data.collections[i].cid).text('(Click here to edit)')));
+                        for (b in data.collections[i].badges) {
+                            var bg = $('<div>').addClass('badge').addClass('small');
+                            bg.append($('<img>').attr('src',data.collections[i].badges[b].icon).attr('title',data.collections[i].badges[b].about));
+                            bg.append($('<div>').addClass('title').text(data.collections[i].badges[b].title));
+                            bs.append(bg);
+                        }
+                        $('#badges').append(bs);
+                    }
+                }             
             });
             
             var collectionTitle;
@@ -54,6 +82,8 @@
 <body>
     <div id="header">
         <div id="content">commplish</div>
+            <a class="inout" href="/logout">logout</a>
+            <a class="user-home" href="/home">home</a>
     </div>
     <div id="container">
         <div id="content">
@@ -62,23 +92,23 @@
                     <img class="icon" />
                     <div class="title">Edit this project</div>
                     <div class="menu">
-                        <a class="collections">Manage collections</a>
-                        <a class="create selected">New collection!</a>
+                        <a class="badges selected">Manage collections</a>
+                        <a class="create">New collection!</a>
                         <a class="follow">Follow a collection</a>
                         <a class="join">Join a collection</a>
                         <a class="drop">Drop a collection</a>
                         <a class="details">Edit Profile</a>
                         <a class="change">Change icon</a>
                         <a class="admins">Add admins</a>
-                        <a class="key">API Key</a>
+                        <a class="keys">API Keys</a>
                     </div>
                 </div>
             </div>
             <div id="block">
-                    <div id="collections" class="content-block" >
-                        You have no collections
+                    <div id="badges" class="content-block selected" >
+                        
                     </div>
-                    <form id="create" class="content-block selected" action="/org/collection/create" method="post" enctype="multipart/form-data" >
+                    <form id="create" class="content-block" action="/org/collection/create" method="post" enctype="multipart/form-data" >
                         <div class="input-header">
                             Create new collection
                         </div>
@@ -105,9 +135,7 @@
                         <input type="hidden" name="project-identifier" class="project-identifier" value="" />
                         <input type="submit" name="action" value="next" class="button next" />
                     </form>
-                    
-                    
-                    
+
                     <form id="details" class="content-block" action="/org/project/update" method="post" enctype="multipart/form-data" >
                         <div class="input-header">
                             Project Details
@@ -129,7 +157,6 @@
                         <input type="submit" name="action" value="save" class="button save" />
                     </form>
                     
-                    
                     <form id="change" class="content-block" action="/org/project/icon" method="post" enctype="multipart/form-data" >
                         <div class="input-header">
                             Project icon
@@ -143,7 +170,6 @@
                         </div>
                         <input type="submit" name="action" value="update" class="button update" />
                     </form>
-                    
                     
                     <!-- Form for following a collection. -->
                     <form id="follow" class="content-block" action="/org/project/follow-collection" method="post" enctype="multipart/form-data" >
@@ -164,8 +190,7 @@
                       </div>
                       <input type="submit" name="action" value="follow" class="button follow" />
                     </form>
-                
-
+     
                     <!-- Form for adding an admin to a project. -->
                     <form id="admins" class="content-block" action="/org/project/add-admin" method="post" enctype="multipart/form-data" >
                       <div class="input-header">
@@ -224,6 +249,31 @@
                     </form>
                     
                     
+                    <!-- Form for adding an admin to a project. -->
+                    <div id="keys" class="content-block">
+                        <div class="input-header">
+                          API keys
+                        </div>
+                        <div class="input-overview">
+                            API keys are very important and you need to be sure that you keep them secure. They are what you will need to 
+                            access your Commplish data and to give out new badges.
+                        </div>
+                      <div class="input-row">
+                        <label>Public ID</label>
+                        <div class="input-column">
+                            <div class="full"><i class="public-id">your public key</i></div>
+                            <div class="description">You can use the above to access your user information from your registered URL.</div>
+                        </div>
+                      </div>
+                      <div class="input-row">
+                        <label>API Secret</label>
+                        <div class="input-column" id="show-private-key">
+                          <button class="button center small show-private-key">Click to show</button>
+                          <div class="description">You can use the combination of your Pubic ID and your API Secret to programitically access your user information from outside your registered domain. Do not not publish this key in publically available code.</div>
+                        </div>
+                      </div>
+                    </div>
+
             </div>
         </div>
         <div id="footer">(c) commplish</div>

@@ -3,7 +3,7 @@
     <title>Commplish</title>
     <link rel="stylesheet" type="text/css" href="http://fonts.googleapis.com/css?family=Ubuntu">
     <link rel="stylesheet" href="/css/main.css">
-    <link rel="stylesheet" href="/css/profile.css">
+    <link rel="stylesheet" href="/css/profiles/main.css">
     <script src="//ajax.googleapis.com/ajax/libs/jquery/1.6.1/jquery.min.js" type="text/javascript"></script>
     <script>
         $('document').ready(function(){
@@ -16,9 +16,8 @@
                 );
                 $('#profile .content .icon').attr('src',data.icon);
                 $('#profile .content .about').text(data.about);
-                $('#profile .content .link.badges').text('Awards from '+data.collections.length+' Collections');
-                $('#profile .content .link.members').text(data.members+' members');
-                $('#profile .content .link.age').text('Awarding for '+data.age);
+                $('#profile .content .info.badges').text('Awards from '+data.collections.length+' Collections');
+                $('#profile .content .info.age').text('Awarding for '+data.age);
                
                 if (data.collections.length == 0){
                     $('#badges').append(
@@ -26,10 +25,10 @@
                     ); 
                 } else {
                     for ( i in data.collections ) {
-                        var bs = $('<div>').addClass('badge-set');
+                        var bs = $('<div>').addClass('collection');
                         bs.append($('<div>').addClass('name').text(data.collections[i].title));
                         for (b in data.collections[i].badges) {
-                            var bg = $('<div>').addClass('badge');
+                            var bg = $('<div>').addClass('badge').addClass('medium');
                             bg.append($('<img>').attr('src',data.collections[i].badges[b].icon).attr('title',data.collections[i].badges[b].about));
                             bg.append($('<div>').addClass('title').text(data.collections[i].badges[b].title));
                             bs.append(bg);
@@ -38,13 +37,21 @@
                     }
                 }
             });
+            $.getJSON('/status', function(data) {
+                $('.inout').attr('href', data.url).text(data.text);
+                $('.user-home').attr('href', data.home);
+            });
         });
     </script>
 
 </head>
 <body>
     <div id="header">
-        <div id="content">commplish</div>
+        <div id="content">
+            <span class="site">commplish</span>
+            <a class="inout" href="/home">login</a>
+            <a class="user-home" href="/">home</a>
+        </div>
     </div>
     <div id="container">
         <div id="content">
@@ -54,9 +61,8 @@
                     <img class="icon" src="" />
                     <div class="url"></div>
                     <div class="about"></div>
-                    <div class="link badges"></div>
-                    <div class="link members"></div>
-                    <div class="link age"></div>
+                    <div class="info badges"></div>
+                    <div class="info age"></div>
                 </div>
             </div>
             <div id="badges">
