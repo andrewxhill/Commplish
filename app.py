@@ -1,5 +1,5 @@
 """
-Copyright (C)  Andrew Hill
+Copyright (C)  Andrew Hill, Aaron Steele
 """
 from __future__ import with_statement
 import cgi
@@ -11,8 +11,7 @@ from google.appengine.ext.webapp import util
 from google.appengine.ext.webapp import template
 from google.appengine.api import images
 from google.appengine.api import files
-from aeoid import users
-from aeoid import middleware
+from google.appengine.api import users
 from commplish.db import *
 import simplejson
 import md5
@@ -22,31 +21,19 @@ import urllib
 import uuid
 import re
 
-class AppsFederationHandler(webapp.RequestHandler):
-    """Handles openid login for federated Google Apps Marketplace apps."""
-    def get(self):
-        domain = self.request.get("domain")
-        if not domain:
-            self.redirect("/user/view")
-        else:
-            openid_url = "https://www.google.com/accounts/o8/site-xrds?hd=" + domain
-            self.redirect("%s?openid_url=%s" %
-                          (users.OPENID_LOGIN_PATH, urllib.quote(openid_url)))
 
-
-class LoginHandler(webapp.RequestHandler):
-    def get(self):
-        if users.get_current_user():
-            login = LoginRecord()
-            logging.warn(login.user)
-            login.put()
-        self.redirect('/home')
+if 'SERVER_SOFTWARE' in os.environ:
+  PROD = not os.environ['SERVER_SOFTWARE'].startswith('Development')
+else:
+  PROD = True
 
 class LogOut(webapp.RequestHandler):
     def get(self):
         if users.get_current_user():
             self.redirect(users.create_logout_url('/'))
-
+        else:
+            self.redirect('/')
+            
 class BaseHandler(webapp.RequestHandler):
     def __init__(self):
         self.user = users.get_current_user()
@@ -55,20 +42,68 @@ class BaseHandler(webapp.RequestHandler):
             m = md5.new()
             m.update(self.user.email().strip().lower())
             self.usermd5 = str(m.hexdigest())
-
+    def post(self):
+        self.get()
+    def get(self):
+        pass
     def render_template(self, file, template_vals):
         path = os.path.join(os.path.dirname(__file__), 'commplish', 'templates', file )
-        logging.error(path)
         self.response.out.write(template.render(path, template_vals))
     def push_html(self, file):
         path = os.path.join(os.path.dirname(__file__), "commplish", "html", file)
         self.response.out.write(open(path, 'r').read())
     def signup(self):
         self.push_html('user_signup.html')
-
-    def login(self, url):
-        self.redirect(users.create_login_url(url))
-
+        return
+        
+    def login(self, url=None, path=None):
+        self.ID_PROVIDERS = {
+                       'google' : 'http://google.com/accounts/o8/id',
+                       'myopenid'  : 'http://myopenid.com/',
+                       'aol' : 'http://openid.aol.com/',
+                       'myspace' : 'http://myspace.com/',
+                       'yahoo' : 'http://me.yahoo.com/', 
+                       'versign' : 'http://pip.verisignlabs.com/',
+                       'launchpad' : 'http://login.launchpad.net/',
+                       'flicker': 'http://flicker.com/',
+                       'wordpress': 'http://wordpress.com/',
+                       'blogspot': 'http://blogspot.com/',
+                       }
+        if url is None:
+            url = self.request.url
+        if path is not None:
+            url = "http://" + self.request.url.rstrip('/') + '/' + path.lstrip('/')
+            
+        if self.user is None:
+            for s in ['http://','https://','www.']:
+                url = url.lstrip(s)
+            openid_url = self.request.get('openid_url', None)
+            if openid_url is None or len(openid_url.strip()) == 0:
+                openid_url = self.ID_PROVIDERS.get(self.request.get('provider'), None)
+            if openid_url is not None:
+                if PROD:
+                    self.redirect(
+                        users.create_login_url(
+                            url,
+                            federated_identity = openid_url
+                        )
+                    )
+                else:
+                    self.redirect(users.create_login_url('http://localhost:8080/home'))
+                return
+            self.push_html('login.html')
+            return True
+        m = md5.new()
+        m.update(self.user.email().strip().lower())
+        self.usermd5 = str(m.hexdigest())
+        #self.usermodel = UserModel.all(keys_only=True).filter('md5 = ',self.usermd5).fetch(1)
+        self.usermodel = UserModel.frommd5(self.usermd5)
+        #if len(self.usermodel) == 0:
+        if self.usermodel is None:
+            self.signup()
+            return True
+        
+            
     def _hasprojectauthority(self,pid):
         if db.Key.from_path('Project', pid.strip().lower()) in self.user.admins:
             return True
@@ -82,31 +117,11 @@ class BaseHandler(webapp.RequestHandler):
             if p in col.projects:
                 a = True
         return a
-
-class SiteHome(webapp.RequestHandler):
+    
+class SiteHome(BaseHandler):
     def get(self):
         self.redirect('/home')
-
-class UserAdmin(BaseHandler):
-    def profile(self):
-        if self.user is None:
-            self.login('/home')
-            return
-
-        m = md5.new()
-        m.update(self.user.email().strip().lower())
-        self.usermd5 = str(m.hexdigest())
-        um = UserModel.all(keys_only=True).filter('md5 = ',self.usermd5).fetch(1)
-
-        if len(um) == 0:
-            self.signup()
-            return
-
-        self.push_html('admin_user_profile.html')
-
-    def get(self):
-        self.profile()
-
+        
 class UserProfile(BaseHandler):
     def get(self, name):
         self.push_html('public_user_profile.html')
@@ -121,21 +136,55 @@ class ProjectProfile(BaseHandler):
             return
         self.push_html('public_project_profile.html')
 
+class CollectionProfile(BaseHandler):
+    def post(self,cid):
+        self.get(cid)
+
+    def get(self,cid):
+        self.push_html('public_collection_profile.html')
+
+class UserAdmin(BaseHandler):
+    def profile(self):
+        self.push_html('admin_user_profile.html')
+    def get(self):
+        if self.login():
+            return
+        self.profile()
+
 class ProjectProfileAdmin(BaseHandler):
     def post(self,pid):
         self.get(pid)
-
     def get(self,pid):
-        um = UserModel.all(keys_only=True).filter('md5 = ',self.usermd5).fetch(1)
-        if len(um)==0:
-            self.redirect('/home')
+        if self.login():
             return
+            
         if Project.get_by_key_name(pid.strip().lower()):
             self.push_html('admin_project_profile.html')
             return
         else:
             self.redirect('/home')
             return
+
+class CollectionProfileAdmin(BaseHandler):
+    def post(self,cid):
+        self.get(cid)
+
+    def get(self,cid):
+        if self.login():
+            return
+            
+        col = Collection.get_by_key_name(cid.lower().strip())
+        a = False
+        for p in self.usermodel.admins:
+            if p in col.projects:
+                a = True
+
+        if a:
+            self.push_html('admin_collection_profile.html')
+            return
+
+        self.redirect('/home')
+        return
 
 class GiveFakeBadges(BaseHandler):
     def get(self):
@@ -711,33 +760,6 @@ To accept this invite please click this link:
 
         self.redirect('/project/%s' % proj.strip().lower())
 
-class CollectionProfile(BaseHandler):
-    def post(self,cid):
-        self.get(cid)
-
-    def get(self,cid):
-        self.push_html('public_collection_profile.html')
-
-class CollectionProfileAdmin(BaseHandler):
-    def post(self,cid):
-        self.get(cid)
-
-    def get(self,cid):
-        um = UserModel.all().filter('md5 = ',self.usermd5).fetch(1)
-        if len(um)>0:
-            um = um[0]
-            col = Collection.get_by_key_name(cid.lower().strip())
-            a = False
-            for p in um.admins:
-                if p in col.projects:
-                    a = True
-
-            if a:
-                self.push_html('admin_collection_profile.html')
-                return
-
-        self.redirect('/home')
-        return
 
 
 
@@ -751,17 +773,13 @@ application = webapp.WSGIApplication([('/', SiteHome),
                                       ('/org/user/([^/]+)', AdminUser),
                                       ('/org/project/([^/]+)', AdminProject),
                                       ('/org/collection/([^/]+)', AdminCollection),
-                                      #('/new', AdminProject),
-                                      #('/new/([^/]+)', CreateNewProject),
+                                      ('/logout', LogOut),
 
                                       ('/give', GiveFakeBadges),
                                       ('/load', LoadFakeData),
-                                      #('/user/login', LoginHandler),
-                                      ('/logout', LogOut),
-                                      ('/apps_login', AppsFederationHandler),
                                      ],
-                                     debug=False)
-application = middleware.AeoidMiddleware(application)
+                                     debug=True)
+#application = middleware.AeoidMiddleware(application)
 
 def main():
     util.run_wsgi_app(application)

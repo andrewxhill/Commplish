@@ -1,0 +1,17 @@
+﻿
+
+.providers {
+    list-style: none;
+}
+.providers span {
+    display: none;
+}
+.providers img {
+    border: 5px solid white;
+    border-radius: 5px;
+}
+.providers img:hover {
+    cursor: pointer;
+    background: #ffb296;
+    border: 5px solid #ffb296;
+}

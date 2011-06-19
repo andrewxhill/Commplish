@@ -1,27 +1,22 @@
 import md5
 import os
 import re
+import logging
 import md5
 
 from google.appengine.ext import db
-
-from aeoid import users
-
-class LoginRecord(db.Model):
-    user = users.UserProperty(auto_current_user_add=True, required=True)
-    timestamp = db.DateTimeProperty(auto_now_add=True)
+from google.appengine.api import users
 
 class UserModel(db.Model):
     #key_name = nickname
     nickname = db.StringProperty() #Must be distinct
-    user = users.UserProperty(required=True)
+    user = db.UserProperty(required=True)
     md5 = db.StringProperty()
     about = db.TextProperty()
     joinDate = db.DateTimeProperty()
     projects = db.ListProperty(db.Key)
     admins = db.ListProperty(db.Key) # Project keys
     #badges = RefProp from UserBadge
-
     @classmethod
     def frommd5(cls, usermd5):
         results = UserModel.all().filter('md5 = ', usermd5).fetch(1)

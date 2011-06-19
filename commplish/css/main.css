@@ -32,6 +32,12 @@ body{
     font-size: 1.5em;
     font-weight: bold;
 }
+#header #content a{
+    color: #fefefe;
+    float: right;
+    text-decoration: none;
+    font-size: 14px;
+}
 #container{
     position: absolute;
     width: 750px;

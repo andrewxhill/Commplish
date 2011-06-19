@@ -1,0 +1,63 @@
+<html>
+<head>
+    <title>Commplish</title>
+    <link rel="stylesheet" type="text/css" href="http://fonts.googleapis.com/css?family=Ubuntu">
+    <link rel="stylesheet" href="/css/main.css">
+    <link rel="stylesheet" href="/css/login.css">
+    <link rel="stylesheet" href="/css/forms/main.css">
+    <link rel="stylesheet" href="/js/main.js">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.6.1/jquery.min.js" type="text/javascript"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.13/jquery-ui.min.js" type="text/javascript"></script>
+    <script>
+        var direct = function() {
+            $(this).parent().find('li').removeClass('selected');
+            $(this).addClass('selected');
+            $(this).unbind('submit').submit(function() {
+              $(this).val($this.find("li.selected span").text());
+            });
+            $this.submit();
+            return false;
+          };
+        $('document').ready(function(){
+            
+            $('.providers').find('li.direct').click(function(){
+                $('#openid_url').val($(this).find('span').text());
+                $('#provider').submit();
+                return false;
+            });
+            $('.providers').find('li.openid').click(function(){
+                
+            });
+            $('.providers').find('li.username').click(function(){
+                
+            });
+        });
+    </script>
+</head>
+<body>
+    <div id="header">
+        <div id="content">commplish</div>
+    </div>
+    <div id="container">
+        <div id="content">
+            <form id="provider" method="post" name="provider">
+                <div class="panel">
+                    <div class="header">
+                        Sign in with <a href="http://openid.net/get-an-openid/what-is-openid/" target="_blank">OpenID</a>
+                    </div>
+                    <input id="openid_url" name="openid_url" type="text" placeholder="Please Enter Your OpenID" autocapitalize="off" autocorrect="off" required autofocus/>
+                    <button type="submit">Sign in</button>
+                    
+                    <ul class="providers"> 
+                        <li class="direct" title="Google"> 
+                          <img alt="icon" src="/images/openid/google.png" /> 
+                          <span>https://www.google.com/accounts/o8/id</span> 
+                        </li> 
+                    </ul>
+                </div>
+            </form>
+        </div>
+        <div id="footer">(c) commplish</div>
+    </div>
+</body>
+</html>

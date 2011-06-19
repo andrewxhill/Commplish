@@ -1,6 +1,6 @@
 <html>
 <head>
-    <title>Commplish</title>
+    <title>Commplish</title>
     <link rel="stylesheet" type="text/css" href="http://fonts.googleapis.com/css?family=Ubuntu">
     <link rel="stylesheet" href="/css/main.css">
     <link rel="stylesheet" href="/css/profile.css">
@@ -43,9 +43,7 @@
 </head>
 <body>
     <div id="header">
-        <div id="content">commplish
-        <a class="logout" href="/logout">logout</a>
-        </div>
+        <div id="content">commplish</div>
     </div>
     <div id="container">
         <div id="content">

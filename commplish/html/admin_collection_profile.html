@@ -54,6 +54,23 @@
                 $('#block').children('.content-block').removeClass('selected');
                 $('#block').find('#'+cl).addClass('selected');
             });
+            
+            var badgeTitle;
+            $('form#add .badge-submit').attr('disabled','true');
+            $('form#add .badge-submit').fadeTo('fast',0.3);
+            $('form#add .badge-title').change(function(){
+                badgeTitle = $(this).val();
+                $.getJSON('/api/available/badge/'+badgeTitle, {'collection-id': collection}, function(data) {
+                    if (data.available == true){
+                        $('form#add .badge-title').css('background','#fff');
+                        $('form#add .badge-submit').removeAttr('disabled');
+                        $('form#add .badge-submit').fadeTo('fast',1.0);
+                    } else {
+                        $('form#add .badge-title').val("Taken! " + badgeTitle);
+                        $('form#add .badge-title').css('background','#ee7799');
+                    }
+                });
+            });
         });
     </script>
 
@@ -158,8 +175,8 @@
                             </div>
                         </div>
                         <input type="hidden" name="collection-identifier" class="collection-identifier" value="" />
+                        <input type="submit" name="action" value="submit" class="button badge-submit" />
                         <input type="submit" name="action" value="cancel" class="button cancel" />
-                        <input type="submit" name="action" value="submit" class="button submit" />
                             
                     </form>
                     

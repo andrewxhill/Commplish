@@ -8,6 +8,7 @@ builtins:
 - datastore_admin: on
 
 handlers:
+
 - url: /favicon.ico
   static_files: static/gfx/favicon.ico
   upload: static/gfx/favicon.ico
@@ -29,4 +30,3 @@ handlers:
   
 - url: /.*
   script: app.py
-  

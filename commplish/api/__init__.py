@@ -10,8 +10,6 @@ from google.appengine.ext import webapp
 from google.appengine.ext.webapp import util
 from google.appengine.ext.webapp import template
 from google.appengine.api import images
-from aeoid import users
-from aeoid import middleware
 from commplish.db import *
 import simplejson
 import pickle
@@ -49,7 +47,7 @@ class UrlTest(webapp.RequestHandler):
                 )
         return
 
-class NameTest(webapp.RequestHandler):
+class NameAvailTest(webapp.RequestHandler):
     def get(self,model,name):
         self.post(model,name)
     def post(self,model,name):
@@ -61,6 +59,13 @@ class NameTest(webapp.RequestHandler):
             name = urllib.unquote(name)
             name = re.sub(r'[^a-zA-Z0-9-]', '_', name.strip().lower())
             pk = db.get(db.Key.from_path('Collection',name))
+        elif model == 'badge':
+            cid = self.request.get('collection-id', None)
+            if cid:
+                name = urllib.unquote(name)
+                name = re.sub(r'[^a-zA-Z0-9-]', '_', name.strip().lower())
+                cid = re.sub(r'[^a-zA-Z0-9-]', '_', cid.strip().lower())
+                pk = db.get(db.Key.from_path('Collection',cid,'Badge',name))
 
         if pk:
             out = {'available': False}
@@ -225,7 +230,7 @@ class UserService(webapp.RequestHandler):
         um = UserModel.all().filter('md5 = ',self.usermd5).fetch(1)
         if um:
             u = um[0]
-
+        out = {'error': 'not authorized'}
         if u is not None:
             sz = self.request.get('s', 128)
             try:
@@ -287,11 +292,10 @@ application = webapp.WSGIApplication([
                                       ('/api/collection/([^/]+)', CollectionService),
                                       ('/api/user/([^/]+)', UserService),
                                       ('/api/user/([^/]+)/([^/]+)', UserService),
-                                      ('/api/available/([^/]+)/([^/]+)', NameTest),
+                                      ('/api/available/([^/]+)/([^/]+)', NameAvailTest),
                                       ('/api/url', UrlTest),
                                      ],
                                      debug=False)
-application = middleware.AeoidMiddleware(application)
 
 def main():
     util.run_wsgi_app(application)
