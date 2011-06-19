@@ -350,11 +350,13 @@ class LoadPublicIcons(webapp.RequestHandler):
                 files.finalize(img)
                 icon_key = files.blobstore.get_blob_key(img)
                 
-                tags = [t.strip().lower()]
+                tags = []
+                tags.append(t.strip().lower())
                 ts = t.strip().lower().split(' ')
                 if len(ts)>1:
                     for s in ts:
-                        tags.append(tags)
+                        s = s.strip()
+                        tags.append(s)
                 b = PublicBadges(
                         title = t,
                         icon = str(icon_key),
