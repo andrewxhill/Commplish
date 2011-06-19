@@ -14,7 +14,7 @@
             var cl;
             
             $('#block').find('.collection-identifier').val(collection);
-            
+            $('.collection-id').val(collection)            
             
             //add a badge
             $('#block #badges .add-new-badge').click(function(){
@@ -89,25 +89,26 @@
                         </div>
                     </div>
                     
-                    
+                    <!-- Form for inviting projects to join collection. -->
                     <form id="invite" class="content-block" action="/org/collection/invite" method="post" enctype="multipart/form-data" >
-                        <div class="input-header">
-                            Invite other projects
+                      <input class="collection-id" type="hidden" name="collection-id" value=""/>
+                      <div class="input-header">
+                        Invite other projects
+                      </div>
+                      <div class="input-overview">
+                        Inviting other projects to this collection will give them full rights to create 
+                        new badges within this set, to give their users these badges, and to add new users to recieve badges. 
+                        Projects must accept your invites before they are added. 
+                      </div>
+                      <div class="input-row">
+                        <label>Project ID</label>
+                        <div class="input-column">
+                          <input type="text" name="invited-project-id" class="full project-id"/>
+                          <div class="description">A project ID can be found in the url of its profile page.</div>
                         </div>
-                        <div class="input-overview">
-                            Inviting other projects to this collection will give them full rights to create 
-                            new badges within this set, to give their users these badges, and to add new users to recieve badges. 
-                            Projects must accept your invites before they are added. 
-                        </div>
-                        <div class="input-row">
-                            <label>Project ID</label>
-                            <div class="input-column">
-                                <input type="text" name="project-id" class="full project-id"/>
-                                <div class="description">A project ID can be found in the url of its profile page.</div>
-                            </div>
-                        </div>
-                        <input type="hidden" name="collection-identifier" class="collection-identifier" value="" />
-                        <input type="submit" name="action" value="send request" class="button join" />
+                      </div>
+                      <input type="hidden" name="collection-identifier" class="collection-identifier" value="" />
+                      <input type="submit" name="action" value="send request" class="button join" />
                     </form>
                     
                     
