@@ -184,15 +184,19 @@
     padding-top: 5px;
     margin-bottom: 10px;
 }
-#block .collection .full-name,
+#block .collection .full-name{
+    width: 100%;
+    float: left;
+}
 #block .project .full-name{
-    width: 48%;
+    width: 80%;
+    float: right;
 }
 #block .full-name a{
     color: #333;
 }
 #block .project .icon{
-    width: 80px;
+    width: 19%;
     float: left;
 }
 #block .project .icon img{
@@ -200,14 +204,14 @@
 }
 
 #block .project .about{
-    width: 50%;
+    width: 80%;
     float: right;
-    font-size: 16px;
+    font-size: 14px;
 }
 #block .collection .about{
     width: 100%;
     float: left;
-    font-size: 16px;
+    font-size: 14px;
 }
 /* Needed for the Project Admin page */
 #block #badges .collection {

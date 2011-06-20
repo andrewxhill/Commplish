@@ -113,18 +113,19 @@ class AdminProject(OrganizeHandler):
                 self.secret('reset')
                 return
             
-            if not self.pid or not self.cid:
-                logging.error('Unable to join collection %s to project %s' % (cid, pid))
-                self.redirect('/home')
-                return
             if action == 'add-admin':
                 self._addadmin()
-            elif action == 'join-collection':
-                self._handlecollection('join')
-            elif action == 'follow-collection':
-                self._handlecollection('follow')
-            elif action == 'drop-collection':
-                self._handlecollection('drop')
+            else:
+                if not self.pid or not self.cid:
+                    logging.error('Unable to join collection %s to project %s' % (self.cid, self.pid))
+                    self.redirect('/home')
+                    return
+                elif action == 'join-collection':
+                    self._handlecollection('join')
+                elif action == 'follow-collection':
+                    self._handlecollection('follow')
+                elif action == 'drop-collection':
+                    self._handlecollection('drop')
                 
     def secret(self, action):
         self.project = Project.fromname(self.pid)
@@ -213,7 +214,7 @@ class AdminProject(OrganizeHandler):
             self.redirect('/home')
             
         # Gets the UserModel entity for uid and redirects if None:
-        self.newadmin = UserModel.fromemail(uid)
+        self.newadmin = UserModel.get_by_key_name(self.toid(self.uid))
         if not self.newadmin:
             logging.error('Invalid user id ' + self.uid)
             self.redirect('/home')
@@ -305,35 +306,35 @@ class AdminCollection(OrganizeHandler):
             self._acceptinvite()
             
     def _acceptinvite(self):
-        pid = self.request.get('pid', None)
-        cid = self.request.get('cid', None)
+        self.pid = self.request.get('pid', None)
+        self.cid = self.request.get('cid', None)
         token = self.request.get('token', None)
-        if not pid or not cid or not token:
+        if not self.pid or not self.cid or not token:
             logging.error('Unable to accept invitation')
             self.response.out.write('Sorry, invalid request parameters')
             return
 
-        project = Project.fromname(pid)
-        adminuser = UserModel.frommd5(token)
-        collection = Collection.fromtitle(cid)
-        if not project or not adminuser or not collection:
+        self.project = Project.fromname(self.pid)
+        self.adminuser = UserModel.frommd5(token)
+        self.collection = Collection.fromtitle(self.cid)
+        if not self.project or not self.adminuser or not self.collection:
             logging.error('Unable to accept invitation')
             self.response.out.write('Sorry, invalid request state')
             return
 
-        if adminuser.key() not in project.admins:
+        if self.adminuser.key() not in self.project.admins:
             logging.error('Unable to accept invitation')
             self.response.out.write('Sorry, invalid request admin')
             return
         
-        ckey = collection.key()
-        if ckey not in project.collections:
-            project.collections.append(ckey)
-            project.put()
-        pkey = project.key()
-        if pkey not in collection.projects:
-            collection.projects.append(pkey)
-            collection.put()
+        ckey = self.collection.key()
+        if ckey not in self.project.collections:
+            self.project.collections.append(ckey)
+            self.project.put()
+        pkey = self.project.key()
+        if pkey not in self.collection.projects:
+            self.collection.projects.append(pkey)
+            self.collection.put()
 
         self.response.out.write(
             'Thanks %s! Your project %s is now connected to the %s badge collection!' % \
