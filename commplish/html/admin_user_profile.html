@@ -4,6 +4,7 @@
     <link rel="stylesheet" type="text/css" href="http://fonts.googleapis.com/css?family=Ubuntu">
     <link rel="stylesheet" href="/css/main.css">
     <link rel="stylesheet" href="/css/profiles/main.css">
+    <link rel="stylesheet" href="/css/profiles/profile_admin.css">
     <script src="//ajax.googleapis.com/ajax/libs/jquery/1.6.1/jquery.min.js" type="text/javascript"></script>
     <script>
         $('document').ready(function(){
@@ -15,7 +16,31 @@
                 $('#profile .content .projects').text('Administer '+data.admins.length+' projects');
                 $('#profile .content .collections').text('Administer '+data.collections.length+' collections');
                 $('#profile .content .age').text('Member for '+data.age);
-               
+                              
+                if (data.admins == 0){
+                    $('#block #projects').append($('<i>').text('you have no projects'));
+                    $('#block #collections').append($('<i>').text('you have no collections'));
+                } else {
+                    for (p in data.admins) {
+                        $.getJSON('/api/project/'+data.admins[p].name+"?s=72", function(result) {
+                            var pr = $('<div>').addClass('project');
+                            var ln = $('<a>').attr('href','/admin/project/'+result.pid).text(result.fullName);
+                            var icn = $('<img>').attr('src',result.icon);
+                            pr.append( $('<div>').addClass('full-name').append(ln) );
+                            pr.append( $('<div>').addClass('icon').append(icn) );
+                            pr.append( $('<div>').addClass('about').text(result.about) );                          
+                            $('#block #projects').append(pr);
+                            for (c in result.collections) {
+                                var cl = $('<div>').addClass('collection');
+                                var ln = $('<a>').attr('href','/admin/collection/'+result.collections[c].cid).text(result.collections[c].title);
+                                cl.append( $('<div>').addClass('full-name').append(ln) );
+                                cl.append( $('<div>').addClass('about').text(result.collections[c].about) );
+                                $('#block #collections').append(cl);
+                            }
+                        });
+                    }
+                }
+                    
                 if (data.collections.length == 0){
                     $('#badges').append(
                         $('<div>').addClass('name').text('you have not earned any badges yet')
@@ -45,6 +70,14 @@
                     }
                     $('#profile .content .badges').text('You have '+badgesCt+' badges');
                 }
+                
+                $('#profile .menu a').click(function(){
+                    $('#profile .menu').children('a').removeClass('selected');
+                    cl = $(this).attr('class');
+                    $(this).addClass('selected');
+                    $('#block').children('.content-block').removeClass('selected');
+                    $('#block').find('#'+cl).addClass('selected');
+                });
             });
         });
     </script>
@@ -63,15 +96,27 @@
                     <div class="title">name</div>
                     <img class="icon" src="" />
                     <div class="about"></div>
-                    <a class="badges selected"></a>
-                    <a class="projects"></a>
-                    <a class="collections"></a>
-                    <a class="info age"></a>
+                    <div class="menu">
+                        <a class="badges selected"></a>
+                        <a class="projects"></a>
+                        <a class="collections"></a>
+                    </div>
+                    <div class="info age"></div>
                 </div>
             </div>
-            <div id="badges" class="selected">
-            </div>
-            <div id="projects">
+            <div id="block">
+                <div id="badges" class="content-block selected">
+                </div>
+                <div id="projects" class="content-block">
+                    <div class="input-header">
+                            Your projects
+                    </div>
+                </div>
+                <div id="collections" class="content-block">
+                    <div class="input-header">
+                            Your collections
+                    </div>
+                </div>
             </div>
         </div>
         <div id="footer">(c) commplish</div>

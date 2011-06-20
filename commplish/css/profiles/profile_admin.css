@@ -170,3 +170,46 @@
     color: #000000;
     cursor: pointer;
 }
+#block #projects,
+#block #collections{
+    width: 98%;
+    float: left;
+}
+#block #collections .collection,
+#block #projects .project{
+    width: 100%;
+    border-top: 1px dotted grey;
+    float: left;
+    margin-top: 5px;
+    padding-top: 5px;
+    margin-bottom: 10px;
+}
+#block .collection .full-name,
+#block .project .full-name{
+    width: 48%;
+}
+#block .full-name a{
+    color: #333;
+}
+#block .project .icon{
+    width: 80px;
+    float: left;
+}
+#block .project .icon img{
+    width: 72px;
+}
+
+#block .project .about{
+    width: 50%;
+    float: right;
+    font-size: 16px;
+}
+#block .collection .about{
+    width: 100%;
+    float: left;
+    font-size: 16px;
+}
+/* Needed for the Project Admin page */
+#block #badges .collection {
+    margin-bottom: 20px;
+}
