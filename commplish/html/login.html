@@ -21,6 +21,7 @@
         $('document').ready(function(){
             
             $('.providers').find('li.direct').click(function(){
+                //console.log($(this).find('span').text());
                 $('#openid_url').val($(this).find('span').text());
                 $('#provider').submit();
                 return false;
@@ -40,20 +41,34 @@
     </div>
     <div id="container">
         <div id="content">
+            <div class="left">
+                <div class="row">
+                    <img class="logo" src="/images/logo-big.png">
+                </div>
+                <div class="row">
+                    <div class="headline">A global rewards system for users</div>
+                    <div class="content">
+                        Sign in on the right using your OpenId account to start using Commplish today!
+                    </div>
+                </div>
+            </div>
             <form id="provider" method="post" name="provider">
+                <input type="hidden" name="openid_url" id="openid_url" value="" />
                 <div class="panel">
                     <div class="header">
-                        Sign in with <a href="http://openid.net/get-an-openid/what-is-openid/" target="_blank">OpenID</a>
+                        Sign in with
                     </div>
-                    <input id="openid_url" name="openid_url" type="text" placeholder="Please Enter Your OpenID" autocapitalize="off" autocorrect="off" required autofocus/>
-                    <button type="submit">Sign in</button>
-                    
                     <ul class="providers"> 
                         <li class="direct" title="Google"> 
                           <img alt="icon" src="/images/openid/google.png" /> 
                           <span>https://www.google.com/accounts/o8/id</span> 
                         </li> 
+                        <li class="direct" title="Yahoo"> 
+                          <img alt="icon" src="/images/openid/yahoo.png" /> 
+                          <span>https://www.yahoo.com</span> 
+                        </li> 
                     </ul>
+                    
                 </div>
             </form>
         </div>

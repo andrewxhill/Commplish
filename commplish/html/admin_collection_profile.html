@@ -89,6 +89,8 @@
                 
             $.getJSON('/api/collection/'+collection+'?s=64', function(data) {
                 $('#block .collection-description').val(data.about);   
+                $('#profile .content .title').text(data.title);
+                $('#profile .content .about').text(data.about);
                 for ( i in data.badges ) {
                     var bs = $('<div>').addClass('badge-edit');
                     bs.append($('<div>').addClass('title').text(data.badges[i].title));
@@ -151,8 +153,8 @@
         <div id="content">
             <div id="profile">
                 <div class="content">
-                    <img class="icon" />
-                    <div class="title">Edit this collection</div>
+                    <div class="title"></div>
+                    <div class="about"></div>
                     <div class="menu">
                         <a class="badges selected">Edit badges</a>
                         <a class="invite">Invite other projects</a>

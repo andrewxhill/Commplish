@@ -80,9 +80,24 @@ class BaseHandler(webapp.RequestHandler):
             for s in ['http://','https://','www.']:
                 url = url.lstrip(s)
             openid_url = self.request.get('openid_url', None)
+            
             if openid_url is None or len(openid_url.strip()) == 0:
                 openid_url = self.ID_PROVIDERS.get(self.request.get('provider'), None)
+            
+            logging.error(self.request.get('provider'))
+            logging.error(self.request.get('provider'))
+            logging.error(self.request.get('provider'))
+            logging.error(self.request.get('provider'))
+            logging.error(self.request.get('provider'))
             if openid_url is not None:
+                logging.error(PROD)
+                logging.error(PROD)
+                logging.error(PROD)
+                logging.error(PROD)
+                logging.error(PROD)
+                logging.error(PROD)
+                logging.error(PROD)
+                logging.error(PROD)
                 if PROD:
                     self.redirect(
                         users.create_login_url(
@@ -123,7 +138,7 @@ class BaseHandler(webapp.RequestHandler):
     
 class SiteHome(BaseHandler):
     def get(self):
-        self.redirect('/home')
+        self.push_html('home.html')
         
 class UserProfile(BaseHandler):
     def get(self, name):
@@ -134,9 +149,10 @@ class ProjectProfile(BaseHandler):
         self.get(pid)
 
     def get(self,pid):
-        if pid=="new":
-            self.push_html('project_signup.html')
-            return
+        if pid=="new" and self.usermodel:
+            if self.usermodel.limit >= len(self.usermodel.admins):
+                self.push_html('project_signup.html')
+                return
         self.push_html('public_project_profile.html')
 
 class CollectionProfile(BaseHandler):
@@ -220,7 +236,8 @@ class LoadFakeData(BaseHandler):
         usermd5 = str(m.hexdigest())
 
         usr = UserModel.all().filter('md5 = ',usermd5).fetch(1)[0]
-
+        usr.limit = 30
+        db.put(usr)
         """Create a user instance"""
         """
         usr = UserModel(
@@ -255,6 +272,7 @@ class LoadFakeData(BaseHandler):
                     url = db.Link("http://mappinglife.org"),
                     about = "Species range knowledge project",
                     collections = [],
+                    limit = 30,
                     admins = [usr.key()],
                     icon = str(icon_key),
                     joinDate = datetime.datetime.now(),

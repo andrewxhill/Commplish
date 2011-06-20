@@ -278,6 +278,11 @@ class UserService(APIHandler):
                     "admins": [],
                     "age": "%s %s" % (str(age.days + 1), ageunit),
                   }
+            if u.limit == -1:
+                out['invite'] = False
+            elif u.limit == 0:
+                out['invite'] = True
+                
             for p in u.admins:
                 tp = db.get(p)
                 out['admins'].append(

@@ -66,6 +66,8 @@ class AdminUser(OrganizeHandler):
             return
         if action=='create':
             self._createuser()
+        if action=='request-invite':
+            self._requestinvite()
 
     def _createuser(self):
         nickname = self.request.get('nickname', None)
@@ -80,6 +82,20 @@ class AdminUser(OrganizeHandler):
                     )
             db.put(u)
 
+        self.redirect('/home')
+        
+    def _requestinvite(self):
+        if self.user is not None and self.usermodel is not None:
+            c = CommplishInvites(
+                    parent = self.usermodel,
+                    user = self.user,
+                    about = self.request.get('invite-description', None)
+                )
+            db.put(c)
+            self.usermodel.limit = 0
+            db.put(self.usermodel)
+            
+            
         self.redirect('/home')
 
 class AdminProject(OrganizeHandler):
@@ -249,42 +265,47 @@ class AdminProject(OrganizeHandler):
         return True if len(pk)==0 else False
 
     def _createproject(self):
-            
-        fullName = self.request.get('project-full-name', None)
-        name = self.request.get('project-name', None)
-        url = self.request.get('project-url', None)
-        desc = self.request.get('project-description', None)
-        icon = self.request.get('project-icon')
-        """create a blobstore entity for the icon"""
-        if icon:
-            img = files.blobstore.create(mime_type='img/png')
-            with files.open(img, 'a') as f:
-                f.write(icon)
-            files.finalize(img)
-            icon = str(files.blobstore.get_blob_key(img))
-            
-        """verify that the url and name are unique"""
-        if self._checkurl(url) and self._checkname(name):
-            p = Project(
-                    key_name = self.toid(name),
-                    fullName = fullName.strip(),
-                    name = name,
-                    url = self._validurl(url),
-                    about = desc,
-                    icon = icon,
-                    admins = [self.usermodel.key()],
-                    joinDate = datetime.datetime.now(),
-                    secret = str(uuid.uuid4())
-                    )
-            db.put(p)
-            self.usermodel.admins.append(p.key())
-            self.usermodel.projects.append(p.key())
-            db.put(self.usermodel)
-
-            rurl = "/admin/project/%s" % name
-            self.redirect(rurl)
+        if self.usermodel.limit <= len(self.usermodel.admins):
+            self.redirect('/home')
             return
-        self.redirect('/')
+        else:
+            fullName = self.request.get('project-full-name', None)
+            name = self.request.get('project-name', None)
+            url = self.request.get('project-url', None)
+            desc = self.request.get('project-description', None)
+            icon = self.request.get('project-icon')
+            """create a blobstore entity for the icon"""
+            if icon:
+                img = files.blobstore.create(mime_type='img/png')
+                with files.open(img, 'a') as f:
+                    f.write(icon)
+                files.finalize(img)
+                icon = str(files.blobstore.get_blob_key(img))
+                
+            """verify that the url and name are unique"""
+            if self._checkurl(url) and self._checkname(name):
+                p = Project(
+                        key_name = self.toid(name),
+                        fullName = fullName.strip(),
+                        name = name,
+                        url = self._validurl(url),
+                        about = desc,
+                        icon = icon,
+                        admins = [self.usermodel.key()],
+                        joinDate = datetime.datetime.now(),
+                        secret = str(uuid.uuid4())
+                        )
+                db.put(p)
+                self.usermodel.admins.append(p.key())
+                self.usermodel.projects.append(p.key())
+                db.put(self.usermodel)
+
+                rurl = "/admin/project/%s" % name
+                self.redirect(rurl)
+                return
+            else:
+                self.redirect('/home')
+                return
 
 class AdminCollection(OrganizeHandler):
     def post(self,action):

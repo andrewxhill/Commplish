@@ -14,6 +14,8 @@ class UserModel(db.Model):
     md5 = db.StringProperty()
     about = db.TextProperty()
     joinDate = db.DateTimeProperty()
+    allowedProjects = db.ListProperty(db.Key)
+    limit = db.IntegerProperty(default=-1)
     projects = db.ListProperty(db.Key)
     admins = db.ListProperty(db.Key) # Project keys
     #badges = RefProp from UserBadge
@@ -33,6 +35,11 @@ class UserModel(db.Model):
         usermd5 = str(m.hexdigest())
         return cls.frommd5(usermd5)
 
+class CommplishInvites(db.Model):
+    #key_name = nickname
+    user = db.UserProperty()
+    about = db.TextProperty()
+    
 class UserBadge(db.Model):
     #parent = db.Badge
     project = db.StringProperty() #key.str of Project that granted the badge

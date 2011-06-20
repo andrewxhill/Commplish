@@ -4,6 +4,7 @@
     <link rel="stylesheet" type="text/css" href="http://fonts.googleapis.com/css?family=Ubuntu">
     <link rel="stylesheet" href="/css/main.css">
     <link rel="stylesheet" href="/css/profiles/main.css">
+    <link rel="stylesheet" href="/css/forms/main.css">
     <link rel="stylesheet" href="/css/profiles/profile_admin.css">
     <script src="//ajax.googleapis.com/ajax/libs/jquery/1.6.1/jquery.min.js" type="text/javascript"></script>
     <script>
@@ -16,8 +17,24 @@
                 $('#profile .content .projects').text('Administer '+data.admins.length+' projects');
                 $('#profile .content .collections').text('Administer '+data.collections.length+' collections');
                 $('#profile .content .age').text('Member for '+data.age);
-                              
-                if (data.admins == 0){
+                 
+                if (data.invite == false){
+                    var m = $('#profile .content .menu');
+                    var inv = $('<a>');
+                    inv.text('Request invite');
+                    inv.addClass('invite');
+                    m.append(inv);
+                    $('#block #collections').append($('<i>').text("you aren't an admin on any collections"));
+                } else if (data.invite == true){
+                    var m = $('#profile .content .menu');
+                    var inv = $('<a>');
+                    inv.text('Awaiting invite');
+                    inv.addClass('waiting');
+                    $('#block #collections').append($('<i>').text("you aren't an admin on any collections"));
+                    m.append(inv);
+                } 
+                
+                if (data.admins.length == 0){
                     $('#block #projects').append($('<i>').text('you have no projects'));
                     $('#block #collections').append($('<i>').text('you have no collections'));
                 } else {
@@ -53,8 +70,8 @@
                         bs.append($('<div>').addClass('name').text(data.collections[i].title));
                         
                         var pr = $('<div>').addClass('from');
+                        pr.append($('<div>').addClass('title').text('Earned from: '));
                         for (p in data.collections[i].projects){
-                            pr.append($('<div>').addClass('title').text('Earned from: '));
                             pr.append($('<a>').attr('href','/project/' + data.collections[i].projects[p]).text(data.collections[i].projects[p]));
                         }
                         bs.append(pr);
@@ -117,6 +134,37 @@
                             Your collections
                     </div>
                 </div>
+                <form id="invite" class="content-block" action="/org/user/request-invite" method="post" enctype="multipart/form-data" >
+                    <div class="input-header">
+                        Request invite
+                    </div>
+                    <div class="input-overview">
+                        Commplish is slowingly rolling out features. We need to pace the rate of 
+                        new project sign up to ensure that we can offer continuous support. Please 
+                        request an invite below.
+                    </div>
+                    <div class="input-row tall">
+                        <label>Description</label>
+                        <div class="input-column">
+                            <textarea name="invite-description" class="invite-description"></textarea>
+                            <div class="description">What will you use Commplish for?</div>
+                        </div>
+                    </div>
+                    <input type="submit" name="action" value="submit" class="button submit" />
+                </form>
+                <div id="waiting" class="content-block">
+                    <div class="input-header">
+                        Awaiting invite
+                    </div>
+                    <div class="input-row tall">
+                        <div class="input-column">
+                            We will unlock your account to create new 
+                            projects as soon as possible. Thank you.
+                            
+                        </div>
+                    </div>
+                </div>
+                
             </div>
         </div>
         <div id="footer">(c) commplish</div>
